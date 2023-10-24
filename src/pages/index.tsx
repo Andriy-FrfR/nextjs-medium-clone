@@ -1,3 +1,9 @@
+import Head from 'next/head';
+
 export default function HomePage() {
-  return null;
+  return (
+    <Head>
+      <title>Home - Conduit</title>
+    </Head>
+  );
 }

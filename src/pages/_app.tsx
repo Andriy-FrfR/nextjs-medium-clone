@@ -44,7 +44,7 @@ const Header = () => {
 
   return (
     <header>
-      <nav className="mx-auto flex h-[56px] max-w-[940px] items-center justify-between px-5">
+      <nav className="mx-auto flex h-[56px] max-w-[1140px] items-center justify-between px-5">
         <Link
           href="/"
           className="font-titilium text-2xl font-bold text-green-500"
@@ -72,17 +72,17 @@ const Header = () => {
 const Footer = () => {
   return (
     <footer className="mt-auto bg-gray-100">
-      <div className="mx-auto flex h-[56px] max-w-[940px] items-center px-5">
+      <div className="mx-auto flex h-[56px] max-w-[1140px] items-center px-5">
         <Link
           href="/"
-          className="font-titilium active:text-green-650 font-bold text-green-500 active:underline"
+          className="font-titilium font-bold text-green-500 hover:text-green-650 hover:underline"
         >
           conduit
         </Link>
         <p className="ml-3 text-xs text-gray-400">
           © 2023. An interactive learning project from{' '}
           <Link
-            className="font-titilium active:text-green-650 text-green-500 active:underline"
+            className="font-titilium text-green-500 hover:text-green-650 hover:underline"
             href="https://thinkster.io/"
             target="_blank"
           >

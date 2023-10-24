@@ -9,7 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        'green-550': '#5CB85C',
         'green-650': '#3d8b3d',
+        'gray-150': '#eceeef',
       },
       fontFamily: {
         sans: ['var(--font-source-sans-3)'],

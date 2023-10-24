@@ -1,3 +1,9 @@
+import Head from 'next/head';
+
 export default function LoginPage() {
-  return null;
+  return (
+    <Head>
+      <title>Sign in - Conduit</title>
+    </Head>
+  );
 }
