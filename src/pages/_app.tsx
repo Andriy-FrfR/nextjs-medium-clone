@@ -22,12 +22,13 @@ const titilium_web = Titillium_Web({
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <div
-      className={`${source_sans_3.variable} ${titilium_web.variable} font-sans`}
+      className={`${source_sans_3.variable} ${titilium_web.variable} flex min-h-screen flex-col font-sans`}
     >
       <Header />
       <main>
         <Component {...pageProps} />
       </main>
+      <Footer />
     </div>
   );
 }
@@ -44,7 +45,10 @@ const Header = () => {
   return (
     <header>
       <nav className="mx-auto flex h-[56px] max-w-[940px] items-center justify-between px-5">
-        <Link href="/" className="text-green font-titilium text-2xl font-bold">
+        <Link
+          href="/"
+          className="font-titilium text-2xl font-bold text-green-500"
+        >
           conduit
         </Link>
         <div className="flex">
@@ -62,5 +66,31 @@ const Header = () => {
         </div>
       </nav>
     </header>
+  );
+};
+
+const Footer = () => {
+  return (
+    <footer className="mt-auto bg-gray-100">
+      <div className="mx-auto flex h-[56px] max-w-[940px] items-center px-5">
+        <Link
+          href="/"
+          className="font-titilium active:text-green-650 font-bold text-green-500 active:underline"
+        >
+          conduit
+        </Link>
+        <p className="ml-3 text-xs text-gray-400">
+          © 2023. An interactive learning project from{' '}
+          <Link
+            className="font-titilium active:text-green-650 text-green-500 active:underline"
+            href="https://thinkster.io/"
+            target="_blank"
+          >
+            Thinkster
+          </Link>
+          . Code licensed under MIT.
+        </p>
+      </div>
+    </footer>
   );
 };
