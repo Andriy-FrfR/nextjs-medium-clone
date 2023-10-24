@@ -7,7 +7,15 @@ const config: Config = {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        green: 'rgb(92, 184, 92)',
+      },
+      fontFamily: {
+        sans: ['var(--font-source-sans-3)'],
+        titilium: ['var(--font-titillium-web)'],
+      },
+    },
   },
   plugins: [],
 };
