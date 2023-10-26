@@ -1,7 +1,9 @@
-import type { AppProps } from 'next/app';
-import { Source_Sans_3, Titillium_Web } from 'next/font/google';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import type { AppProps } from 'next/app';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+import { Source_Sans_3, Titillium_Web } from 'next/font/google';
 
 import '~/styles/globals.css';
 
@@ -29,6 +31,18 @@ export default function App({ Component, pageProps }: AppProps) {
         <Component {...pageProps} />
       </main>
       <Footer />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 }

@@ -1,9 +1,15 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useState } from 'react';
+import { toast } from 'react-toastify';
+import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 
-const INPUTS = [
+import { isTRPCClientError, trpc } from '~/utils/trpc';
+
+type InputName = 'username' | 'email' | 'password';
+
+const INPUTS: { placeholder: string; type: string; name: InputName }[] = [
   {
     placeholder: 'Username',
     type: 'text',
@@ -22,14 +28,41 @@ const INPUTS = [
 ];
 
 export default function RegisterPage() {
-  const { handleSubmit, register } = useForm();
+  const router = useRouter();
+
+  const { handleSubmit, register, getValues } =
+    useForm<Record<InputName, string>>();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     setIsLoading(true);
 
-    setTimeout(() => setIsLoading(false), 1000);
+    const values = getValues();
+
+    try {
+      const user = await trpc.user.register.mutate(values);
+      router.replace('/');
+    } catch (e) {
+      if (!isTRPCClientError(e) || e.data?.code === 'INTERNAL_SERVER_ERROR') {
+        setIsLoading(false);
+        toast('Something went wrong', { type: 'error' });
+        return;
+      }
+
+      if (e.message === 'user with this email already exists') {
+        setErrorMessages([e.message]);
+        setIsLoading(false);
+        return;
+      }
+
+      const errors = JSON.parse(e.message) as Error[];
+      const errorMessages = errors.map((error) => error.message);
+
+      setErrorMessages(errorMessages);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -45,7 +78,22 @@ export default function RegisterPage() {
         >
           Have an account?
         </Link>
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-4 flex flex-col">
+        <ul className="mb-1 mt-3 text-left">
+          {errorMessages.map((errorMessage) => (
+            <li
+              className="flex items-center font-bold text-red-700"
+              key={errorMessage}
+            >
+              <div className="mr-2 h-[5px] w-[5px] rounded-full bg-red-700" />{' '}
+              {errorMessage}
+            </li>
+          ))}
+        </ul>
+        <form
+          noValidate
+          onSubmit={handleSubmit(onSubmit)}
+          className="mt-4 flex flex-col"
+        >
           {INPUTS.map(({ type, placeholder, name }) => (
             <input
               {...register(name)}
@@ -54,14 +102,14 @@ export default function RegisterPage() {
               placeholder={placeholder}
               disabled={isLoading}
               className={`mb-4 h-[51px] rounded border border-[#00000026] px-6 py-3 text-xl text-gray-600 placeholder:text-gray-400 ${
-                isLoading && 'bg-gray-150 cursor-not-allowed'
+                isLoading && 'cursor-not-allowed bg-gray-150'
               }`}
             />
           ))}
           <button
             type="submit"
             disabled={isLoading}
-            className={`bg-green-550 self-end rounded px-6 py-3 text-xl text-white ${
+            className={`self-end rounded bg-green-550 px-6 py-3 text-xl text-white ${
               isLoading
                 ? 'cursor-not-allowed opacity-60'
                 : 'hover:bg-green-600 active:bg-green-700'
