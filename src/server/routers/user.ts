@@ -55,4 +55,50 @@ export const userRouter = router({
 
       return { ...user, accessToken };
     }),
+  login: publicProcedure
+    .input(
+      z.object({
+        email: z.string().min(1, "email can't be blank"),
+        password: z.string().min(1, "password can't be blank"),
+      }),
+    )
+    .query(async (opts) => {
+      const { email, password } = opts.input;
+
+      const userWithGivenEmail = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (!userWithGivenEmail) {
+        throw new TRPCError({
+          message: 'user with this email does not exist',
+          code: 'BAD_REQUEST',
+        });
+      }
+
+      const passwordsMatch = await bcrypt.compare(
+        password,
+        userWithGivenEmail.password,
+      );
+
+      if (!passwordsMatch) {
+        throw new TRPCError({
+          message: 'password is not correct',
+          code: 'BAD_REQUEST',
+        });
+      }
+
+      const accessToken = jwt.sign(
+        String(userWithGivenEmail.id),
+        process.env.JWT_SECRET!,
+      );
+
+      return {
+        ...userWithGivenEmail,
+        password: undefined,
+        accessToken,
+      };
+    }),
 });

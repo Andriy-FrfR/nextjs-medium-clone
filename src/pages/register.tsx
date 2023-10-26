@@ -78,7 +78,7 @@ export default function RegisterPage() {
         >
           Have an account?
         </Link>
-        <ul className="mb-1 mt-3 text-left">
+        <ul className="mb-1 mt-3 pl-6 text-left">
           {errorMessages.map((errorMessage) => (
             <li
               className="flex items-center font-bold text-red-700"
