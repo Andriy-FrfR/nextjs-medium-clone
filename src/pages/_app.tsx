@@ -2,10 +2,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { AppProps } from 'next/app';
 import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer } from 'react-toastify';
 import { Source_Sans_3, Titillium_Web } from 'next/font/google';
+import { ToastContainer as ToastContainerBase } from 'react-toastify';
 
 import '~/styles/globals.css';
+import { trpc } from '~/utils/trpc';
 
 const source_sans_3 = Source_Sans_3({
   weight: ['400', '300', '500', '600', '700'],
@@ -21,7 +22,7 @@ const titilium_web = Titillium_Web({
   variable: '--font-titillium-web',
 });
 
-export default function App({ Component, pageProps }: AppProps) {
+const App = ({ Component, pageProps }: AppProps) => {
   return (
     <div
       className={`${source_sans_3.variable} ${titilium_web.variable} flex min-h-screen flex-col font-sans`}
@@ -31,21 +32,12 @@ export default function App({ Component, pageProps }: AppProps) {
         <Component {...pageProps} />
       </main>
       <Footer />
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
+      <ToastContainer />
     </div>
   );
-}
+};
+
+export default trpc.withTRPC(App);
 
 const Header = () => {
   const router = useRouter();
@@ -108,3 +100,18 @@ const Footer = () => {
     </footer>
   );
 };
+
+const ToastContainer = () => (
+  <ToastContainerBase
+    position="top-right"
+    autoClose={5000}
+    hideProgressBar={false}
+    newestOnTop={false}
+    closeOnClick
+    rtl={false}
+    pauseOnFocusLoss
+    draggable
+    pauseOnHover
+    theme="light"
+  />
+);

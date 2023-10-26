@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 
-import { isTRPCClientError, trpc } from '~/utils/trpc';
+import { trpc } from '~/utils/trpc';
 
 type InputName = 'username' | 'email' | 'password';
 
@@ -29,31 +29,19 @@ const INPUTS: { placeholder: string; type: string; name: InputName }[] = [
 
 export default function RegisterPage() {
   const router = useRouter();
-
-  const { handleSubmit, register, getValues } =
-    useForm<Record<InputName, string>>();
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-
-  const onSubmit = async () => {
-    setIsLoading(true);
-
-    const values = getValues();
-
-    try {
-      const user = await trpc.user.register.mutate(values);
+  const { mutate, isLoading } = trpc.user.register.useMutation({
+    onSuccess: (data) => {
+      console.log(data);
       router.replace('/');
-    } catch (e) {
-      if (!isTRPCClientError(e) || e.data?.code === 'INTERNAL_SERVER_ERROR') {
-        setIsLoading(false);
+    },
+    onError: (e) => {
+      if (e.data?.code === 'INTERNAL_SERVER_ERROR') {
         toast('Something went wrong', { type: 'error' });
         return;
       }
 
       if (e.message === 'user with this email already exists') {
         setErrorMessages([e.message]);
-        setIsLoading(false);
         return;
       }
 
@@ -61,8 +49,17 @@ export default function RegisterPage() {
       const errorMessages = errors.map((error) => error.message);
 
       setErrorMessages(errorMessages);
-      setIsLoading(false);
-    }
+    },
+  });
+
+  const { handleSubmit, register, getValues } =
+    useForm<Record<InputName, string>>();
+
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+
+  const onSubmit = async () => {
+    const values = getValues();
+    mutate(values);
   };
 
   return (

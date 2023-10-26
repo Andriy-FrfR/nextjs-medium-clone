@@ -21,8 +21,8 @@ export const userRouter = router({
         username: z.string().min(1, "username can't be blank"),
       }),
     )
-    .mutation(async (opts) => {
-      const { email, password, username } = opts.input;
+    .mutation(async ({ input }) => {
+      const { email, password, username } = input;
 
       const userWithEmailAlreadyExist = await prisma.user.findUnique({
         where: { email },
@@ -62,8 +62,8 @@ export const userRouter = router({
         password: z.string().min(1, "password can't be blank"),
       }),
     )
-    .query(async (opts) => {
-      const { email, password } = opts.input;
+    .mutation(async ({ input }) => {
+      const { email, password } = input;
 
       const userWithGivenEmail = await prisma.user.findUnique({
         where: {
@@ -101,4 +101,8 @@ export const userRouter = router({
         accessToken,
       };
     }),
+  getCurrentUser: publicProcedure.query(({ ctx }) => {
+    console.log(ctx);
+    return;
+  }),
 });

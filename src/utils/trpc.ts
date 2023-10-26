@@ -1,21 +1,24 @@
-import {
-  TRPCClientError,
-  createTRPCProxyClient,
-  httpBatchLink,
-} from '@trpc/client';
+import superjson from 'superjson';
+import { createTRPCNext } from '@trpc/next';
+import { httpBatchLink } from '@trpc/client';
 
 import { AppRouter } from '~/server';
 
-export const trpc = createTRPCProxyClient<AppRouter>({
-  links: [
-    httpBatchLink({
-      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/trpc`,
-    }),
-  ],
-});
-
-export const isTRPCClientError = (
-  cause: unknown,
-): cause is TRPCClientError<AppRouter> => {
-  return cause instanceof TRPCClientError;
+const getBaseUrl = () => {
+  if (typeof window !== 'undefined') return '';
+  return process.env.NEXT_PUBLIC_APP_URL!;
 };
+
+export const trpc = createTRPCNext<AppRouter>({
+  config() {
+    return {
+      links: [
+        httpBatchLink({
+          url: `${getBaseUrl()}/api/trpc`,
+        }),
+      ],
+      transformer: superjson,
+    };
+  },
+  ssr: false,
+});

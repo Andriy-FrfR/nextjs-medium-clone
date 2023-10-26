@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 
-import { isTRPCClientError, trpc } from '~/utils/trpc';
+import { trpc } from '~/utils/trpc';
 
 type InputName = 'email' | 'password';
 
@@ -25,23 +25,18 @@ const INPUTS: { placeholder: string; type: string; name: InputName }[] = [
 export default function LoginPage() {
   const router = useRouter();
 
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+
   const { handleSubmit, register, getValues } =
     useForm<Record<InputName, string>>();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-
-  const onSubmit = async () => {
-    setIsLoading(true);
-
-    const values = getValues();
-
-    try {
-      const user = await trpc.user.login.query(values);
+  const { mutate, isLoading } = trpc.user.login.useMutation({
+    onSuccess: (data) => {
+      console.log(data);
       router.replace('/');
-    } catch (e) {
-      if (!isTRPCClientError(e) || e.data?.code === 'INTERNAL_SERVER_ERROR') {
-        setIsLoading(false);
+    },
+    onError: (e) => {
+      if (e.data?.code === 'INTERNAL_SERVER_ERROR') {
         toast('Something went wrong', { type: 'error' });
         return;
       }
@@ -51,15 +46,18 @@ export default function LoginPage() {
         e.message === 'password is not correct'
       ) {
         setErrorMessages([e.message]);
-        setIsLoading(false);
         return;
       }
 
       const errors = JSON.parse(e.message) as Error[];
       const errorMessages = errors.map((error) => error.message);
       setErrorMessages(errorMessages);
-      setIsLoading(false);
-    }
+    },
+  });
+
+  const onSubmit = async () => {
+    const values = getValues();
+    mutate(values);
   };
 
   return (
