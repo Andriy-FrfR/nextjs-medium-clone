@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { TRPCError } from '@trpc/server';
 
 import { prisma } from '../prisma';
-import { publicProcedure, router } from '../trpc';
+import { privateProcedure, publicProcedure, router } from '../trpc';
 
 export const userRouter = router({
   register: publicProcedure
@@ -101,8 +101,10 @@ export const userRouter = router({
         accessToken,
       };
     }),
-  getCurrentUser: publicProcedure.query(({ ctx }) => {
-    console.log(ctx);
-    return;
+  getCurrentUser: privateProcedure.query(async ({ ctx }) => {
+    return prisma.user.findUnique({
+      where: { id: ctx.userId },
+      select: { id: true, username: true, email: true, bio: true, image: true },
+    });
   }),
 });

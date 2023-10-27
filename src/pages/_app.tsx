@@ -7,6 +7,7 @@ import { ToastContainer as ToastContainerBase } from 'react-toastify';
 
 import '~/styles/globals.css';
 import { trpc } from '~/utils/trpc';
+import CurrentUserProvider, { useCurrentUser } from '~/context/current-user';
 
 const source_sans_3 = Source_Sans_3({
   weight: ['400', '300', '500', '600', '700'],
@@ -24,16 +25,18 @@ const titilium_web = Titillium_Web({
 
 const App = ({ Component, pageProps }: AppProps) => {
   return (
-    <div
-      className={`${source_sans_3.variable} ${titilium_web.variable} flex min-h-screen flex-col font-sans`}
-    >
-      <Header />
-      <main>
-        <Component {...pageProps} />
-      </main>
-      <Footer />
-      <ToastContainer />
-    </div>
+    <CurrentUserProvider>
+      <div
+        className={`${source_sans_3.variable} ${titilium_web.variable} flex min-h-screen flex-col font-sans`}
+      >
+        <Header />
+        <main>
+          <Component {...pageProps} />
+        </main>
+        <Footer />
+        <ToastContainer />
+      </div>
+    </CurrentUserProvider>
   );
 };
 
@@ -41,12 +44,20 @@ export default trpc.withTRPC(App);
 
 const Header = () => {
   const router = useRouter();
+  const currentUser = useCurrentUser();
 
-  const routes = [
-    { href: '/', name: 'Home' },
-    { href: '/login', name: 'Sign in' },
-    { href: '/register', name: 'Sign up' },
-  ];
+  const routes = currentUser
+    ? [
+        { href: '/', name: 'Home' },
+        { href: '/editor', name: 'New Article' },
+        { href: '/settings', name: 'Settings' },
+        { href: `/@${currentUser.email}`, name: currentUser.username },
+      ]
+    : [
+        { href: '/', name: 'Home' },
+        { href: '/login', name: 'Sign in' },
+        { href: '/register', name: 'Sign up' },
+      ];
 
   return (
     <header>

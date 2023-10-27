@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import Cookies from 'js-cookie';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
@@ -25,14 +26,16 @@ const INPUTS: { placeholder: string; type: string; name: InputName }[] = [
 export default function LoginPage() {
   const router = useRouter();
 
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
-
   const { handleSubmit, register, getValues } =
     useForm<Record<InputName, string>>();
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+
+  const utils = trpc.useUtils();
 
   const { mutate, isLoading } = trpc.user.login.useMutation({
-    onSuccess: (data) => {
-      console.log(data);
+    onSuccess: async (res) => {
+      Cookies.set('accessToken', res.accessToken);
+      await utils.user.getCurrentUser.invalidate();
       router.replace('/');
     },
     onError: (e) => {
