@@ -7,7 +7,7 @@ import { ToastContainer as ToastContainerBase } from 'react-toastify';
 
 import '~/styles/globals.css';
 import { trpc } from '~/utils/trpc';
-import CurrentUserProvider, { useCurrentUser } from '~/context/current-user';
+import AuthProvider, { useAuth } from '~/context/current-user';
 
 const source_sans_3 = Source_Sans_3({
   weight: ['400', '300', '500', '600', '700'],
@@ -25,7 +25,7 @@ const titilium_web = Titillium_Web({
 
 const App = ({ Component, pageProps }: AppProps) => {
   return (
-    <CurrentUserProvider>
+    <AuthProvider>
       <div
         className={`${source_sans_3.variable} ${titilium_web.variable} flex min-h-screen flex-col font-sans`}
       >
@@ -36,7 +36,7 @@ const App = ({ Component, pageProps }: AppProps) => {
         <Footer />
         <ToastContainer />
       </div>
-    </CurrentUserProvider>
+    </AuthProvider>
   );
 };
 
@@ -44,7 +44,7 @@ export default trpc.withTRPC(App);
 
 const Header = () => {
   const router = useRouter();
-  const currentUser = useCurrentUser();
+  const currentUser = useAuth();
 
   const routes = currentUser
     ? [
