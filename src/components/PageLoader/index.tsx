@@ -19,28 +19,28 @@ const PageLoader = () => {
           position: absolute;
           border-radius: 50%;
           animation: pulsOut 1s ease-in-out infinite;
-          filter: drop-shadow(0 0 1rem rgba(0, 0, 0, 0.75));
+          filter: drop-shadow(0 0 1rem rgba(92, 185, 92, 0.75));
         }
         .loader:before {
           width: 100%;
           padding-bottom: 100%;
-          box-shadow: inset 0 0 0 1rem #000;
+          box-shadow: inset 0 0 0 1rem #5cb95c;
           animation-name: pulsIn;
         }
         .loader:after {
           width: calc(100% - 2rem);
           padding-bottom: calc(100% - 2rem);
-          box-shadow: 0 0 0 0 #000;
+          box-shadow: 0 0 0 0 #5cb95c;
         }
 
         @keyframes pulsIn {
           0% {
-            box-shadow: inset 0 0 0 1rem #000;
+            box-shadow: inset 0 0 0 1rem #5cb95c;
             opacity: 1;
           }
           50%,
           100% {
-            box-shadow: inset 0 0 0 0 #000;
+            box-shadow: inset 0 0 0 0 #5cb95c;
             opacity: 0;
           }
         }
@@ -48,11 +48,11 @@ const PageLoader = () => {
         @keyframes pulsOut {
           0%,
           50% {
-            box-shadow: 0 0 0 0 #000;
+            box-shadow: 0 0 0 0 #5cb95c;
             opacity: 0;
           }
           100% {
-            box-shadow: 0 0 0 1rem #000;
+            box-shadow: 0 0 0 1rem #5cb95c;
             opacity: 1;
           }
         }

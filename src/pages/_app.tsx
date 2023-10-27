@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { AppProps } from 'next/app';
 import 'react-toastify/dist/ReactToastify.css';
@@ -7,7 +8,10 @@ import { ToastContainer as ToastContainerBase } from 'react-toastify';
 
 import '~/styles/globals.css';
 import { trpc } from '~/utils/trpc';
-import AuthProvider, { useAuth } from '~/context/current-user';
+import GearIcon from '~/assets/svg/gear.svg';
+import AuthProvider, { useAuth } from '~/contexts/auth';
+import PenToSquareIcon from '~/assets/svg/pen-to-square.svg';
+import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.jpeg';
 
 const source_sans_3 = Source_Sans_3({
   weight: ['400', '300', '500', '600', '700'],
@@ -48,15 +52,48 @@ const Header = () => {
 
   const routes = currentUser
     ? [
-        { href: '/', name: 'Home' },
-        { href: '/editor', name: 'New Article' },
-        { href: '/settings', name: 'Settings' },
-        { href: `/@${currentUser.email}`, name: currentUser.username },
+        { href: '/', content: 'Home' },
+        {
+          href: '/editor',
+          content: (
+            <>
+              <PenToSquareIcon className="mb-1 mr-1 w-4" />
+              New Article
+            </>
+          ),
+        },
+        {
+          href: '/settings',
+          content: (
+            <>
+              <GearIcon className="mr-1 w-4" />
+              Settings
+            </>
+          ),
+        },
+        {
+          href: `/@${currentUser.email}`,
+          content: (
+            <>
+              <Image
+                width={26}
+                src={
+                  currentUser.image
+                    ? currentUser.image
+                    : userAvatarPlaceholderImage
+                }
+                alt="User avatar"
+                className="mr-[6px] rounded-full"
+              />
+              {currentUser.username}
+            </>
+          ),
+        },
       ]
     : [
-        { href: '/', name: 'Home' },
-        { href: '/login', name: 'Sign in' },
-        { href: '/register', name: 'Sign up' },
+        { href: '/', content: 'Home' },
+        { href: '/login', content: 'Sign in' },
+        { href: '/register', content: 'Sign up' },
       ];
 
   return (
@@ -69,15 +106,17 @@ const Header = () => {
           conduit
         </Link>
         <div className="flex">
-          {routes.map(({ href, name }) => (
+          {routes.map(({ href, content }) => (
             <Link
               key={href}
               href={href}
-              className={`ml-4 text-black ${
-                router.pathname === href ? 'opacity-80' : 'opacity-30'
+              className={`ml-4 flex items-center text-black ${
+                router.pathname === href
+                  ? 'text-opacity-80'
+                  : 'text-opacity-30 hover:text-opacity-60'
               }`}
             >
-              {name}
+              {content}
             </Link>
           ))}
         </div>

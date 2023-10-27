@@ -15,7 +15,7 @@ const context = createContext<
   RouterOutputs['user']['getCurrentUser'] | undefined
 >(null);
 
-const PROTECTED_ROUTES = ['/'];
+const PROTECTED_ROUTES = ['/editor'];
 
 const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const router = useRouter();
