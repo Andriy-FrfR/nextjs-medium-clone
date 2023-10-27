@@ -7,7 +7,9 @@ const context = createContext<
 >(null);
 
 const CurrentUserProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const { data } = trpc.user.getCurrentUser.useQuery();
+  const { data } = trpc.user.getCurrentUser.useQuery(undefined, {
+    retry: false,
+  });
 
   return <context.Provider value={data}>{children}</context.Provider>;
 };
