@@ -64,7 +64,7 @@ const Header = () => {
       <nav className="mx-auto flex h-[56px] max-w-[1140px] items-center justify-between px-5">
         <Link
           href="/"
-          className="font-titilium text-2xl font-bold text-green-500"
+          className="font-titilium text-2xl font-bold text-green-550"
         >
           conduit
         </Link>
@@ -92,14 +92,14 @@ const Footer = () => {
       <div className="mx-auto flex h-[56px] max-w-[1140px] items-center px-5">
         <Link
           href="/"
-          className="font-titilium font-bold text-green-500 hover:text-green-650 hover:underline"
+          className="font-titilium font-bold text-green-550 hover:text-green-650 hover:underline"
         >
           conduit
         </Link>
         <p className="ml-3 text-xs text-gray-400">
           © 2023. An interactive learning project from{' '}
           <Link
-            className="font-titilium text-green-500 hover:text-green-650 hover:underline"
+            className="font-titilium text-green-550 hover:text-green-650 hover:underline"
             href="https://thinkster.io/"
             target="_blank"
           >

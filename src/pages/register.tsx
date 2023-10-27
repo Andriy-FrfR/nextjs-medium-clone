@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 
 import { trpc } from '~/utils/trpc';
+import Input from '~/components/Input';
 
 type InputName = 'username' | 'email' | 'password';
 
@@ -75,7 +76,7 @@ export default function RegisterPage() {
         <h1 className="text-[40px]">Sign up</h1>
         <Link
           href="/login"
-          className="text-green-500 hover:text-green-650 hover:underline"
+          className="text-green-550 hover:text-green-650 hover:underline"
         >
           Have an account?
         </Link>
@@ -96,15 +97,14 @@ export default function RegisterPage() {
           className="mt-4 flex flex-col"
         >
           {INPUTS.map(({ type, placeholder, name }) => (
-            <input
+            <Input
               {...register(name)}
               key={name}
               type={type}
               placeholder={placeholder}
               disabled={isLoading}
-              className={`mb-4 h-[51px] rounded border border-[#00000026] px-6 py-3 text-xl text-gray-600 placeholder:text-gray-400 ${
-                isLoading && 'cursor-not-allowed bg-gray-150'
-              }`}
+              state={isLoading ? 'loading' : undefined}
+              className="mb-4"
             />
           ))}
           <button
