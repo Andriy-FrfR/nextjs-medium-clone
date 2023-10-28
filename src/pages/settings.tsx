@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Cookies from 'js-cookie';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
@@ -47,6 +48,12 @@ export default function SettingsPage() {
   const onSubmit = () => {
     const values = getValues();
     mutate(values);
+  };
+
+  const onLogout = async () => {
+    Cookies.remove('accessToken');
+    trpcUtils.user.getCurrentUser.reset();
+    router.push('/');
   };
 
   return (
@@ -109,7 +116,12 @@ export default function SettingsPage() {
           </Button>
         </form>
         <div className="my-4 border-t border-gray-300" />
-        <Button variant="danger" size="sm" disabled={isLoading}>
+        <Button
+          onClick={onLogout}
+          variant="danger"
+          size="sm"
+          disabled={isLoading}
+        >
           Or click here to logout.
         </Button>
       </div>
