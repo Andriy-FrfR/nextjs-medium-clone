@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 
 import { trpc } from '~/utils/trpc';
 import Input from '~/components/Input';
+import Button from '~/components/Button';
 
 type InputName = 'email' | 'password';
 
@@ -100,21 +101,12 @@ export default function LoginPage() {
               type={type}
               placeholder={placeholder}
               disabled={isLoading}
-              state={isLoading ? 'loading' : undefined}
               className="mb-4"
             />
           ))}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`self-end rounded bg-green-550 px-6 py-3 text-xl text-white ${
-              isLoading
-                ? 'cursor-not-allowed opacity-60'
-                : 'hover:bg-green-600 active:bg-green-700'
-            }`}
-          >
+          <Button type="submit" disabled={isLoading} className="self-end">
             Sign in
-          </button>
+          </Button>
         </form>
       </div>
     </>

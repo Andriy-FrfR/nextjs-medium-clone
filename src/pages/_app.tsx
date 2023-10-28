@@ -48,7 +48,7 @@ export default trpc.withTRPC(App);
 
 const Header = () => {
   const router = useRouter();
-  const currentUser = useAuth();
+  const { currentUser } = useAuth();
 
   const routes = currentUser
     ? [

@@ -11,9 +11,9 @@ import {
 import PageLoader from '~/components/PageLoader';
 import { RouterOutputs, trpc } from '~/utils/trpc';
 
-const context = createContext<
-  RouterOutputs['user']['getCurrentUser'] | undefined
->(null);
+const context = createContext<{
+  currentUser: RouterOutputs['user']['getCurrentUser'] | undefined;
+}>({ currentUser: null });
 
 const PROTECTED_ROUTES = ['/editor'];
 
@@ -45,7 +45,11 @@ const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     return <PageLoader />;
   }
 
-  return <context.Provider value={data}>{children}</context.Provider>;
+  return (
+    <context.Provider value={{ currentUser: data }}>
+      {children}
+    </context.Provider>
+  );
 };
 
 export default AuthProvider;
