@@ -30,7 +30,7 @@ export default function SettingsPage() {
 
   const { isLoading, mutate } = trpc.user.updateUser.useMutation({
     onSuccess: async () => {
-      await trpcUtils.user.getCurrentUser.invalidate();
+      trpcUtils.user.getCurrentUser.invalidate();
       router.push(`/@${currentUser?.email}`);
     },
     onError: (e) => {
@@ -52,8 +52,8 @@ export default function SettingsPage() {
 
   const onLogout = async () => {
     Cookies.remove('accessToken');
+    await router.push('/');
     trpcUtils.user.getCurrentUser.reset();
-    router.push('/');
   };
 
   return (
