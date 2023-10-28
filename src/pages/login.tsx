@@ -42,11 +42,6 @@ export default function LoginPage() {
       router.replace('/');
     },
     onError: (e) => {
-      if (e.data?.code === 'INTERNAL_SERVER_ERROR') {
-        toast('Something went wrong', { type: 'error' });
-        return;
-      }
-
       if (
         e.message === 'user with this email does not exist' ||
         e.message === 'password is not correct'
@@ -55,9 +50,14 @@ export default function LoginPage() {
         return;
       }
 
-      const errors = JSON.parse(e.message) as Error[];
-      const errorMessages = errors.map((error) => error.message);
-      setErrorMessages(errorMessages);
+      if (e.data?.zodError) {
+        const errors = JSON.parse(e.message) as Error[];
+        const errorMessages = errors.map((error) => error.message);
+        setErrorMessages(errorMessages);
+        return;
+      }
+
+      toast('Something went wrong', { type: 'error' });
     },
   });
 

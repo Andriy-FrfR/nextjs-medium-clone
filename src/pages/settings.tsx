@@ -34,14 +34,14 @@ export default function SettingsPage() {
       router.push(`/@${currentUser?.email}`);
     },
     onError: (e) => {
-      if (e.data?.code === 'INTERNAL_SERVER_ERROR') {
-        toast('Something went wrong', { type: 'error' });
+      if (e.data?.zodError) {
+        const errors = JSON.parse(e.message) as Error[];
+        const errorMessages = errors.map((error) => error.message);
+        setErrorMessages(errorMessages);
         return;
       }
 
-      const errors = JSON.parse(e.message) as Error[];
-      const errorMessages = errors.map((error) => error.message);
-      setErrorMessages(errorMessages);
+      toast('Something went wrong', { type: 'error' });
     },
   });
 
@@ -80,21 +80,21 @@ export default function SettingsPage() {
             disabled={isLoading}
             variantProps={{ disabled: isLoading, size: 'sm' }}
           />
-          <Textarea
-            {...register('bio')}
-            defaultValue={currentUser?.bio || undefined}
-            className="mb-4"
-            placeholder="Short bio about you"
-            rows={8}
-            disabled={isLoading}
-            variantProps={{ disabled: isLoading }}
-          />
           <Input
             {...register('username')}
             defaultValue={currentUser?.username}
             className="mb-4"
             placeholder="Username"
             type="text"
+            disabled={isLoading}
+            variantProps={{ disabled: isLoading }}
+          />
+          <Textarea
+            {...register('bio')}
+            defaultValue={currentUser?.bio || undefined}
+            className="mb-4"
+            placeholder="Short bio about you"
+            rows={8}
             disabled={isLoading}
             variantProps={{ disabled: isLoading }}
           />

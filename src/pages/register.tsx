@@ -47,20 +47,19 @@ export default function RegisterPage() {
       router.replace('/');
     },
     onError: (e) => {
-      if (e.data?.code === 'INTERNAL_SERVER_ERROR') {
-        toast('Something went wrong', { type: 'error' });
-        return;
-      }
-
       if (e.message === 'user with this email already exists') {
         setErrorMessages([e.message]);
         return;
       }
 
-      const errors = JSON.parse(e.message) as Error[];
-      const errorMessages = errors.map((error) => error.message);
+      if (e.data?.zodError) {
+        const errors = JSON.parse(e.message) as Error[];
+        const errorMessages = errors.map((error) => error.message);
+        setErrorMessages(errorMessages);
+        return;
+      }
 
-      setErrorMessages(errorMessages);
+      toast('Something went wrong', { type: 'error' });
     },
   });
 

@@ -2,10 +2,12 @@ import { VariantProps, tv } from 'tailwind-variants';
 import { TextareaHTMLAttributes, forwardRef } from 'react';
 
 const textarea = tv({
-  base: 'w-full rounded border border-gray-300 px-6 py-3 text-xl text-gray-600 placeholder:text-gray-400',
+  base: 'w-full rounded border border-gray-300 text-gray-600 placeholder:text-gray-400',
   variants: {
+    size: { sm: 'leading-5 py-2 px-3', lg: 'leading-5 text-xl px-6 py-3' },
     disabled: { true: 'cursor-not-allowed bg-gray-150' },
   },
+  defaultVariants: { size: 'lg' },
 });
 
 type Props = TextareaHTMLAttributes<HTMLTextAreaElement> & {
