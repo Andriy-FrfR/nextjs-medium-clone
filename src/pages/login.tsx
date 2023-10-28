@@ -9,6 +9,7 @@ import { useForm } from 'react-hook-form';
 import { trpc } from '~/utils/trpc';
 import Input from '~/components/Input';
 import Button from '~/components/Button';
+import ValidationErrors from '~/components/ValidationErrors';
 
 type InputName = 'email' | 'password';
 
@@ -78,17 +79,7 @@ export default function LoginPage() {
         >
           Need an account?
         </Link>
-        <ul className="mb-1 mt-3 pl-6 text-left">
-          {errorMessages.map((errorMessage) => (
-            <li
-              className="flex items-center font-bold text-red-700"
-              key={errorMessage}
-            >
-              <div className="mr-2 h-[5px] w-[5px] rounded-full bg-red-700" />{' '}
-              {errorMessage}
-            </li>
-          ))}
-        </ul>
+        <ValidationErrors errorMessages={errorMessages} className="mb-1 mt-3" />
         <form
           noValidate
           onSubmit={handleSubmit(onSubmit)}

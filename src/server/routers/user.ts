@@ -46,14 +46,12 @@ export const userRouter = router({
         },
         select: {
           id: true,
-          username: true,
-          email: true,
         },
       });
 
       const accessToken = jwt.sign(String(user.id), process.env.JWT_SECRET!);
 
-      return { ...user, accessToken };
+      return { id: user.id, accessToken };
     }),
   login: publicProcedure
     .input(
@@ -68,6 +66,10 @@ export const userRouter = router({
       const userWithGivenEmail = await prisma.user.findUnique({
         where: {
           email,
+        },
+        select: {
+          id: true,
+          password: true,
         },
       });
 
@@ -96,8 +98,7 @@ export const userRouter = router({
       );
 
       return {
-        ...userWithGivenEmail,
-        password: undefined,
+        id: userWithGivenEmail.id,
         accessToken,
       };
     }),
@@ -107,4 +108,42 @@ export const userRouter = router({
       select: { id: true, username: true, email: true, bio: true, image: true },
     });
   }),
+  updateUser: privateProcedure
+    .input(
+      z.object({
+        image: z.string().optional(),
+        bio: z.string().optional(),
+        username: z.string().optional(),
+        email: z
+          .string()
+          .email('email is invalid')
+          .optional()
+          .or(z.literal('')),
+        password: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Filter input to avoid fields with empty strings
+      const filteredInput = Object.fromEntries(
+        Object.entries(input).filter(([_, value]) => Boolean(value)),
+      );
+
+      if (filteredInput.password) {
+        const salt = await bcrypt.genSalt(10);
+        filteredInput.password = await bcrypt.hash(
+          filteredInput.password,
+          salt,
+        );
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { id: ctx.userId },
+        data: filteredInput,
+        select: {
+          id: true,
+        },
+      });
+
+      return { id: updatedUser.id };
+    }),
 });

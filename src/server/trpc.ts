@@ -1,9 +1,22 @@
+import { ZodError } from 'zod';
 import superjson from 'superjson';
 import { TRPCError, initTRPC } from '@trpc/server';
 
 import { Context } from './context';
 
-const t = initTRPC.context<Context>().create({ transformer: superjson });
+const t = initTRPC.context<Context>().create({
+  transformer: superjson,
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        zodError:
+          error.cause instanceof ZodError ? error.cause.flatten() : null,
+      },
+    };
+  },
+});
 
 const authedUsersOnlyGuard = t.middleware(async ({ ctx, next }) => {
   if (!ctx.userId) {
