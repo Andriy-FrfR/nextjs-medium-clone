@@ -33,14 +33,17 @@ const button = tv({
   },
 });
 
-type Props = VariantProps<typeof button> &
-  ButtonHTMLAttributes<HTMLButtonElement>;
+type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variantProps: VariantProps<typeof button>;
+};
 
 const Button: FC<Props> = (props) => {
+  const { variantProps, ...rest } = props;
+
   return (
     <button
-      {...props}
-      className={button({ ...props, className: props.className })}
+      {...rest}
+      className={button({ ...variantProps, className: props.className })}
     >
       {props.children}
     </button>

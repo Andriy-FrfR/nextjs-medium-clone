@@ -8,16 +8,19 @@ const textarea = tv({
   },
 });
 
-type Props = TextareaHTMLAttributes<HTMLTextAreaElement> &
-  VariantProps<typeof textarea>;
+type Props = TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  variantProps: VariantProps<typeof textarea>;
+};
 
 const Textarea = forwardRef<HTMLTextAreaElement, Props>(
   function Textarea(props, ref) {
+    const { variantProps, ...rest } = props;
+
     return (
       <textarea
-        {...props}
+        {...rest}
         ref={ref}
-        className={textarea({ ...props, className: props.className })}
+        className={textarea({ ...variantProps, className: props.className })}
       />
     );
   },

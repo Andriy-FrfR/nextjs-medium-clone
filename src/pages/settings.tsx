@@ -73,12 +73,12 @@ export default function SettingsPage() {
         >
           <Input
             {...register('image')}
-            sizeVariant="sm"
             defaultValue={currentUser?.image || undefined} // Workaround to pass not null check
             className="mb-4"
             placeholder="Url of profile picture"
             type="text"
             disabled={isLoading}
+            variantProps={{ disabled: isLoading, size: 'sm' }}
           />
           <Textarea
             {...register('bio')}
@@ -87,6 +87,7 @@ export default function SettingsPage() {
             placeholder="Short bio about you"
             rows={8}
             disabled={isLoading}
+            variantProps={{ disabled: isLoading }}
           />
           <Input
             {...register('username')}
@@ -95,6 +96,7 @@ export default function SettingsPage() {
             placeholder="Username"
             type="text"
             disabled={isLoading}
+            variantProps={{ disabled: isLoading }}
           />
           <Input
             {...register('email')}
@@ -103,6 +105,7 @@ export default function SettingsPage() {
             placeholder="Email"
             type="email"
             disabled={isLoading}
+            variantProps={{ disabled: isLoading }}
           />
           <Input
             {...register('password')}
@@ -110,17 +113,22 @@ export default function SettingsPage() {
             placeholder="New Password"
             type="password"
             disabled={isLoading}
+            variantProps={{ disabled: isLoading }}
           />
-          <Button type="submit" className="self-end" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="self-end"
+            disabled={isLoading}
+            variantProps={{ disabled: isLoading }}
+          >
             Update Settings
           </Button>
         </form>
         <div className="my-4 border-t border-gray-300" />
         <Button
           onClick={onLogout}
-          variant="danger"
-          size="sm"
           disabled={isLoading}
+          variantProps={{ variant: 'danger', size: 'sm', disabled: isLoading }}
         >
           Or click here to logout.
         </Button>

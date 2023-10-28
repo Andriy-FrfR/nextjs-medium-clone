@@ -95,10 +95,16 @@ export default function RegisterPage() {
               type={type}
               placeholder={placeholder}
               disabled={isLoading}
+              variantProps={{ disabled: isLoading }}
               className="mb-4"
             />
           ))}
-          <Button type="submit" disabled={isLoading} className="self-end">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            variantProps={{ disabled: isLoading }}
+            className="self-end"
+          >
             Sign up
           </Button>
         </form>
