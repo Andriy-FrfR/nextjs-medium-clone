@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
@@ -6,11 +7,13 @@ import { useForm } from 'react-hook-form';
 import { trpc } from '~/utils/trpc';
 import Input from '~/components/Input';
 import Button from '~/components/Button';
+import { useAuth } from '~/contexts/auth';
 import Textarea from '~/components/Textarea';
 
 export default function CreateArticlePage() {
   const router = useRouter();
   const articleSlug = router.query.slug as string;
+  const { currentUser, isFetchingUser } = useAuth();
 
   const { data: article } = trpc.article.getBySlug.useQuery(articleSlug);
 
@@ -32,6 +35,15 @@ export default function CreateArticlePage() {
     const values = getValues();
     updateArticle({ slug: article?.slug, ...values });
   };
+
+  useEffect(() => {
+    // If user is not author of the article, navigate to home page
+    if (article?.authorId !== currentUser?.id) {
+      router.replace('/');
+    }
+  }, [article?.authorId, currentUser?.id, router]);
+
+  if (article?.authorId !== currentUser?.id || isFetchingUser) return null;
 
   return (
     <>

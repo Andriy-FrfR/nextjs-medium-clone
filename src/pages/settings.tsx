@@ -52,7 +52,7 @@ export default function SettingsPage() {
 
   const onLogout = async () => {
     Cookies.remove('accessToken');
-    await router.push('/');
+    await router.replace('/');
     trpcUtils.user.getCurrentUser.reset();
   };
 

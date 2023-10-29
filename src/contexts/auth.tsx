@@ -13,9 +13,13 @@ import { RouterOutputs, trpc } from '~/utils/trpc';
 
 const context = createContext<{
   currentUser: RouterOutputs['user']['getCurrentUser'] | undefined;
-}>({ currentUser: null });
+  isFetchingUser: boolean;
+}>({ currentUser: null, isFetchingUser: true });
 
-const PROTECTED_ROUTES = ['/editor', '/settings'];
+const PROTECTED_ROUTES = [
+  { path: '/editor' },
+  { path: '/settings', exact: true },
+];
 
 const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const router = useRouter();
@@ -33,7 +37,9 @@ const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     if (
       !isFetchingUser &&
       !data &&
-      PROTECTED_ROUTES.includes(router.pathname)
+      PROTECTED_ROUTES.some(({ path, exact }) =>
+        exact ? router.pathname === path : router.pathname.startsWith(path),
+      )
     ) {
       router.push('/register').then(() => setShowPageLoader(false));
     } else if (!isFetchingUser) {
@@ -46,7 +52,7 @@ const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }
 
   return (
-    <context.Provider value={{ currentUser: data }}>
+    <context.Provider value={{ currentUser: data, isFetchingUser }}>
       {children}
     </context.Provider>
   );
