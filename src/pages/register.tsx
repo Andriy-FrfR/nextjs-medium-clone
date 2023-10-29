@@ -40,7 +40,7 @@ export default function RegisterPage() {
 
   const trpcUtils = trpc.useUtils();
 
-  const { mutate, isLoading } = trpc.user.register.useMutation({
+  const { mutate: signUp, isLoading } = trpc.user.register.useMutation({
     onSuccess: async (res) => {
       Cookies.set('accessToken', res.accessToken);
       await trpcUtils.user.getCurrentUser.invalidate();
@@ -65,7 +65,7 @@ export default function RegisterPage() {
 
   const onSubmit = async () => {
     const values = getValues();
-    mutate(values);
+    signUp(values);
   };
 
   return (

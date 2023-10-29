@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { prisma } from '../prisma';
 import { privateProcedure, publicProcedure, router } from '../trpc';
+import { generateSlug } from '../helpers';
 
 export const articleRouter = router({
   create: privateProcedure
@@ -14,12 +15,7 @@ export const articleRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const slug =
-        input.title
-          .toLowerCase()
-          .split(' ')
-          .filter((value) => Boolean(value))
-          .join('-') + `-${String(Date.now()).slice(-6)}`;
+      const slug = generateSlug(input.title);
 
       const article = await prisma.article.create({
         data: { ...input, slug, authorId: ctx.userId },
@@ -27,6 +23,33 @@ export const articleRouter = router({
       });
 
       return article;
+    }),
+  update: privateProcedure
+    .input(
+      z.object({
+        slug: z.string().min(1),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        body: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Filter input to avoid fields with empty strings
+      const filteredInput = Object.fromEntries(
+        Object.entries(input).filter(([_, value]) => Boolean(value)),
+      );
+
+      if (filteredInput.title) {
+        filteredInput.slug = generateSlug(filteredInput.slug);
+      }
+
+      const updatedArticle = await prisma.article.update({
+        where: { slug: input.slug, authorId: ctx.userId },
+        data: filteredInput,
+        select: { slug: true },
+      });
+
+      return { slug: updatedArticle.slug };
     }),
   delete: privateProcedure
     .input(z.number())

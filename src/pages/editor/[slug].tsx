@@ -1,5 +1,4 @@
 import Head from 'next/head';
-import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
@@ -8,27 +7,16 @@ import { trpc } from '~/utils/trpc';
 import Input from '~/components/Input';
 import Button from '~/components/Button';
 import Textarea from '~/components/Textarea';
-import ValidationErrors from '~/components/ValidationErrors';
 
 export default function CreateArticlePage() {
   const router = useRouter();
+  const articleSlug = router.query.slug as string;
 
-  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const { data: article } = trpc.article.getBySlug.useQuery(articleSlug);
 
-  const { mutate: createArticle, isLoading } = trpc.article.create.useMutation({
-    onSuccess: (data) => {
-      router.push(`/article/${data.slug}`);
-    },
-    onError: (e) => {
-      if (e.data?.zodError) {
-        const errors = JSON.parse(e.message) as Error[];
-        const errorMessages = errors.map((error) => error.message);
-        setErrorMessages(errorMessages);
-        return;
-      }
-
-      toast('Something went wrong', { type: 'error' });
-    },
+  const { mutate: updateArticle, isLoading } = trpc.article.update.useMutation({
+    onSuccess: (data) => router.push(`/article/${data.slug}`),
+    onError: () => toast('Something went wrong', { type: 'error' }),
   });
 
   const { handleSubmit, register, getValues } = useForm<{
@@ -39,8 +27,10 @@ export default function CreateArticlePage() {
   }>();
 
   const onSubmit = () => {
+    if (!article) return;
+
     const values = getValues();
-    createArticle(values);
+    updateArticle({ slug: article?.slug, ...values });
   };
 
   return (
@@ -49,7 +39,6 @@ export default function CreateArticlePage() {
         <title>Editor - Conduit</title>
       </Head>
       <div className="mx-auto mb-10 mt-6 max-w-[960px] px-5">
-        <ValidationErrors errorMessages={errorMessages} className="mb-4" />
         <form
           noValidate
           onSubmit={handleSubmit(onSubmit)}
@@ -57,6 +46,7 @@ export default function CreateArticlePage() {
         >
           <Input
             {...register('title')}
+            defaultValue={article?.title}
             className="mb-4"
             placeholder="Article Title"
             type="text"
@@ -65,6 +55,7 @@ export default function CreateArticlePage() {
           />
           <Input
             {...register('description')}
+            defaultValue={article?.description}
             className="mb-4"
             placeholder="What's this article about?"
             type="text"
@@ -73,6 +64,7 @@ export default function CreateArticlePage() {
           />
           <Textarea
             {...register('body')}
+            defaultValue={article?.body}
             className="mb-4"
             placeholder="Write your article"
             rows={8}

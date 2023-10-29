@@ -35,7 +35,7 @@ export default function LoginPage() {
 
   const utils = trpc.useUtils();
 
-  const { mutate, isLoading } = trpc.user.login.useMutation({
+  const { mutate: login, isLoading } = trpc.user.login.useMutation({
     onSuccess: async (res) => {
       Cookies.set('accessToken', res.accessToken);
       await utils.user.getCurrentUser.invalidate();
@@ -63,7 +63,7 @@ export default function LoginPage() {
 
   const onSubmit = async () => {
     const values = getValues();
-    mutate(values);
+    login(values);
   };
 
   return (
