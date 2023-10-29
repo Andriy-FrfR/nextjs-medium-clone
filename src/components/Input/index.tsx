@@ -14,7 +14,7 @@ const input = tv({
 });
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
-  variantProps: VariantProps<typeof input>;
+  variantProps?: VariantProps<typeof input>;
 };
 
 const Input = forwardRef<HTMLInputElement, Props>(function Input(props, ref) {

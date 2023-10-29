@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { prisma } from '../prisma';
-import { privateProcedure, router } from '../trpc';
+import { privateProcedure, publicProcedure, router } from '../trpc';
 
 export const articleRouter = router({
   create: privateProcedure
@@ -24,6 +24,25 @@ export const articleRouter = router({
       const article = await prisma.article.create({
         data: { ...input, slug, authorId: ctx.userId },
         select: { id: true, slug: true },
+      });
+
+      return article;
+    }),
+  delete: privateProcedure
+    .input(z.number())
+    .mutation(async ({ input: articleId, ctx }) => {
+      await prisma.article.delete({
+        where: { id: articleId, authorId: ctx.userId },
+      });
+    }),
+  getBySlug: publicProcedure
+    .input(z.string())
+    .query(async ({ input: slug }) => {
+      const article = await prisma.article.findUnique({
+        where: { slug },
+        include: {
+          author: { select: { username: true, email: true, image: true } },
+        },
       });
 
       return article;

@@ -1,14 +1,18 @@
-import { ButtonHTMLAttributes, FC } from 'react';
 import { VariantProps, tv } from 'tailwind-variants';
+import Link, { LinkProps as NextLinkProps } from 'next/link';
+import { AnchorHTMLAttributes, ButtonHTMLAttributes, FC } from 'react';
 
 const button = tv({
   base: 'flex items-center justify-center rounded',
   variants: {
     variant: {
       primary: 'bg-green-550 text-white',
-      danger: 'border border-red-700 text-red-700',
+      secondary:
+        'border border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-white active:text-white active:bg-gray-500 active:border-gray-500',
+      'danger-1': 'border border-red-700 text-red-700',
+      'danger-2': 'border border-[#B85C5C] text-[#B85C5C]',
     },
-    size: { lg: 'px-6 py-3 text-xl', sm: 'px-4 py-2' },
+    size: { lg: 'px-6 py-3 text-xl', md: 'px-4 py-2', sm: 'py-1 px-2 text-sm' },
     disabled: {
       true: 'cursor-not-allowed opacity-60',
     },
@@ -20,10 +24,16 @@ const button = tv({
       className: 'hover:bg-green-600 active:bg-green-700',
     },
     {
-      variant: 'danger',
+      variant: 'danger-1',
       disabled: false,
       className:
         'hover:bg-red-700 hover:text-white active:border-red-900 active:bg-red-900 active:text-white',
+    },
+    {
+      variant: 'danger-2',
+      disabled: false,
+      className:
+        'hover:bg-[#B85C5C] hover:text-white active:text-gray-300 active:bg-[#6a3535] active:border-[#6a3535]',
     },
   ],
   defaultVariants: {
@@ -33,16 +43,36 @@ const button = tv({
   },
 });
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variantProps: VariantProps<typeof button>;
-};
+type LinkProps = Omit<
+  AnchorHTMLAttributes<HTMLAnchorElement>,
+  keyof NextLinkProps
+> &
+  NextLinkProps;
+
+type Props = {
+  variantProps?: VariantProps<typeof button>;
+} & (
+  | ({
+      asLink?: false;
+    } & ButtonHTMLAttributes<HTMLButtonElement>)
+  | ({
+      asLink: true;
+    } & LinkProps)
+);
 
 const Button: FC<Props> = (props) => {
-  const { variantProps, ...rest } = props;
+  const { variantProps, asLink, ...rest } = props;
 
-  return (
+  return asLink ? (
+    <Link
+      {...(rest as LinkProps)}
+      className={button({ ...variantProps, className: props.className })}
+    >
+      {props.children}
+    </Link>
+  ) : (
     <button
-      {...rest}
+      {...(rest as ButtonHTMLAttributes<HTMLButtonElement>)}
       className={button({ ...variantProps, className: props.className })}
     >
       {props.children}

@@ -64,7 +64,7 @@ const Header = () => {
           ),
         },
         {
-          href: `/@${currentUser.email}`,
+          href: `/@${currentUser.username}`,
           content: (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}

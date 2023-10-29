@@ -11,7 +11,7 @@ const textarea = tv({
 });
 
 type Props = TextareaHTMLAttributes<HTMLTextAreaElement> & {
-  variantProps: VariantProps<typeof textarea>;
+  variantProps?: VariantProps<typeof textarea>;
 };
 
 const Textarea = forwardRef<HTMLTextAreaElement, Props>(

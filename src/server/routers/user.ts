@@ -108,7 +108,7 @@ export const userRouter = router({
       select: { id: true, username: true, email: true, bio: true, image: true },
     });
   }),
-  updateUser: privateProcedure
+  update: privateProcedure
     .input(
       z.object({
         image: z.string().optional(),

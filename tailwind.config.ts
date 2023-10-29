@@ -12,6 +12,7 @@ const config: Config = {
         'green-550': '#5CB85C',
         'green-650': '#3d8b3d',
         'gray-150': '#eceeef',
+        'zink-750': '#333333',
       },
       fontFamily: {
         sans: ['var(--font-source-sans-3)'],

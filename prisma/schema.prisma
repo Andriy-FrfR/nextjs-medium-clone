@@ -21,13 +21,14 @@ model User {
 }
 
 model Article {
-  id          Int    @id() @default(autoincrement())
-  slug        String @unique
+  id          Int      @id() @default(autoincrement())
+  slug        String   @unique
   title       String
   description String
   body        String
-  author      User   @relation(fields: [authorId], references: [id])
+  author      User     @relation(fields: [authorId], references: [id])
   authorId    Int
+  createdAt   DateTime @default(now())
 
   @@index([authorId])
   @@map("articles")

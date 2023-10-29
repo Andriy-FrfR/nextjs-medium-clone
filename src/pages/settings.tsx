@@ -28,10 +28,10 @@ export default function SettingsPage() {
 
   const trpcUtils = trpc.useUtils();
 
-  const { isLoading, mutate } = trpc.user.updateUser.useMutation({
+  const { isLoading, mutate } = trpc.user.update.useMutation({
     onSuccess: async () => {
       trpcUtils.user.getCurrentUser.invalidate();
-      router.push(`/@${currentUser?.email}`);
+      router.push(`/@${currentUser?.username}`);
     },
     onError: (e) => {
       if (e.data?.zodError) {
@@ -128,7 +128,11 @@ export default function SettingsPage() {
         <Button
           onClick={onLogout}
           disabled={isLoading}
-          variantProps={{ variant: 'danger', size: 'sm', disabled: isLoading }}
+          variantProps={{
+            variant: 'danger-1',
+            size: 'md',
+            disabled: isLoading,
+          }}
         >
           Or click here to logout.
         </Button>
