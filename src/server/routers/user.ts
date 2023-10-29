@@ -24,14 +24,27 @@ export const userRouter = router({
     .mutation(async ({ input }) => {
       const { email, password, username } = input;
 
-      const userWithEmailAlreadyExist = await prisma.user.findUnique({
-        where: { email },
-      });
+      const [userWithEmailAlreadyExist, userWithUsernameAlreadyExist] =
+        await Promise.all([
+          prisma.user.findUnique({
+            where: { email },
+          }),
+          prisma.user.findUnique({
+            where: { username },
+          }),
+        ]);
 
       if (userWithEmailAlreadyExist) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'user with this email already exists',
+        });
+      }
+
+      if (userWithUsernameAlreadyExist) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'user with this username already exists',
         });
       }
 
@@ -127,6 +140,46 @@ export const userRouter = router({
       const filteredInput = Object.fromEntries(
         Object.entries(input).filter(([_, value]) => Boolean(value)),
       );
+
+      if (filteredInput.email) {
+        const userWithEmailAlreadyExist = await prisma.user.findUnique({
+          where: {
+            email: filteredInput.email,
+            AND: {
+              NOT: {
+                id: ctx.userId,
+              },
+            },
+          },
+        });
+
+        if (userWithEmailAlreadyExist) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'email must be unique',
+          });
+        }
+      }
+
+      if (filteredInput.username) {
+        const userWithUsernameAlreadyExist = await prisma.user.findUnique({
+          where: {
+            username: filteredInput.username,
+            AND: {
+              NOT: {
+                id: ctx.userId,
+              },
+            },
+          },
+        });
+
+        if (userWithUsernameAlreadyExist) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'username must be unique',
+          });
+        }
+      }
 
       if (filteredInput.password) {
         const salt = await bcrypt.genSalt(10);

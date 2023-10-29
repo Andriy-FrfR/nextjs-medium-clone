@@ -47,7 +47,10 @@ export default function RegisterPage() {
       router.replace('/');
     },
     onError: (e) => {
-      if (e.message === 'user with this email already exists') {
+      if (
+        e.message === 'user with this email already exists' ||
+        e.message === 'user with this username already exists'
+      ) {
         setErrorMessages([e.message]);
         return;
       }

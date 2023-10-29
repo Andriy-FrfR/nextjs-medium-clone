@@ -34,6 +34,14 @@ export default function SettingsPage() {
       router.push(`/@${currentUser?.username}`);
     },
     onError: (e) => {
+      if (
+        e.message === 'email must be unique' ||
+        e.message === 'username must be unique'
+      ) {
+        setErrorMessages([e.message]);
+        return;
+      }
+
       if (e.data?.zodError) {
         const errors = JSON.parse(e.message) as Error[];
         const errorMessages = errors.map((error) => error.message);
