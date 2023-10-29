@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 import { prisma } from '../prisma';
-import { privateProcedure, publicProcedure, router } from '../trpc';
 import { generateSlug } from '../helpers';
+import { privateProcedure, publicProcedure, router } from '../trpc';
 
 export const articleRouter = router({
   create: privateProcedure
@@ -40,7 +40,14 @@ export const articleRouter = router({
       );
 
       if (filteredInput.title) {
-        filteredInput.slug = generateSlug(filteredInput.slug);
+        const article = await prisma.article.findUnique({
+          where: { slug: input.slug },
+          select: { title: true },
+        });
+
+        if (article?.title !== filteredInput.title) {
+          filteredInput.slug = generateSlug(filteredInput.title);
+        }
       }
 
       const updatedArticle = await prisma.article.update({
