@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { TRPCError } from '@trpc/server';
 
-import { prisma } from '../prisma';
 import { privateProcedure, publicProcedure, router } from '../trpc';
 
 export const userRouter = router({
@@ -21,15 +20,15 @@ export const userRouter = router({
         username: z.string().min(1, "username can't be blank"),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { email, password, username } = input;
 
       const [userWithEmailAlreadyExist, userWithUsernameAlreadyExist] =
         await Promise.all([
-          prisma.user.findUnique({
+          ctx.prisma.user.findUnique({
             where: { email },
           }),
-          prisma.user.findUnique({
+          ctx.prisma.user.findUnique({
             where: { username },
           }),
         ]);
@@ -51,7 +50,7 @@ export const userRouter = router({
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      const user = await prisma.user.create({
+      const user = await ctx.prisma.user.create({
         data: {
           username,
           email,
@@ -73,10 +72,10 @@ export const userRouter = router({
         password: z.string().min(1, "password can't be blank"),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { email, password } = input;
 
-      const userWithGivenEmail = await prisma.user.findUnique({
+      const userWithGivenEmail = await ctx.prisma.user.findUnique({
         where: {
           email,
         },
@@ -116,7 +115,7 @@ export const userRouter = router({
       };
     }),
   getCurrentUser: privateProcedure.query(async ({ ctx }) => {
-    return prisma.user.findUnique({
+    return ctx.prisma.user.findUnique({
       where: { id: ctx.userId },
       select: { id: true, username: true, email: true, bio: true, image: true },
     });
@@ -142,7 +141,7 @@ export const userRouter = router({
       );
 
       if (filteredInput.email) {
-        const userWithEmailAlreadyExist = await prisma.user.findUnique({
+        const userWithEmailAlreadyExist = await ctx.prisma.user.findUnique({
           where: {
             email: filteredInput.email,
             AND: {
@@ -162,7 +161,7 @@ export const userRouter = router({
       }
 
       if (filteredInput.username) {
-        const userWithUsernameAlreadyExist = await prisma.user.findUnique({
+        const userWithUsernameAlreadyExist = await ctx.prisma.user.findUnique({
           where: {
             username: filteredInput.username,
             AND: {
@@ -189,7 +188,7 @@ export const userRouter = router({
         );
       }
 
-      const updatedUser = await prisma.user.update({
+      const updatedUser = await ctx.prisma.user.update({
         where: { id: ctx.userId },
         data: filteredInput,
         select: {

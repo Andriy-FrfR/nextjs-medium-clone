@@ -7,6 +7,8 @@ const button = tv({
   variants: {
     variant: {
       primary: 'bg-green-550 text-white',
+      'primary-outline':
+        'border border-green-550 text-green-550 hover:bg-green-550 hover:text-white active:text-white active:bg-gray-500 active:border-gray-500',
       secondary:
         'border border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-white active:text-white active:bg-gray-500 active:border-gray-500',
       'danger-1': 'border border-red-700 text-red-700',

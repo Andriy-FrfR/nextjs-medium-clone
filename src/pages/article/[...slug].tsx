@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 
 import Button from '~/components/Button';
+import { useAuth } from '~/contexts/auth';
 import PenIcon from '~/assets/svg/pen.svg';
 import TrashIcon from '~/assets/svg/trash.svg';
 import { RouterOutputs, trpc } from '~/utils/trpc';
@@ -13,9 +14,10 @@ import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.
 
 export default function ArticlePage() {
   const router = useRouter();
-  const slug = router.query.slug as string;
+  const articleSlug = (router.query.slug as string[]).join('/');
 
-  const { data: article } = trpc.article.getBySlug.useQuery(slug);
+  const { data: article } = trpc.article.getBySlug.useQuery(articleSlug);
+
   const { mutate: deleteArticle, isLoading: isDeleting } =
     trpc.article.delete.useMutation({
       onSuccess: () => router.replace('/'),
@@ -26,6 +28,8 @@ export default function ArticlePage() {
     if (!article) return;
     deleteArticle(article.id);
   };
+
+  if (!article) return null;
 
   return (
     <>
@@ -75,6 +79,8 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
   isDeleting,
   showAuthorUsernameGreen,
 }) => {
+  const { currentUser } = useAuth();
+
   return (
     <div className={`flex items-center ${className}`}>
       <Link href={`/@${article?.author.username}`}>
@@ -103,22 +109,42 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
           {article?.createdAt?.toDateString()}
         </p>
       </div>
-      <Button
-        asLink
-        href={`/editor/${article?.slug}`}
-        className="ml-6"
-        variantProps={{ size: 'sm', variant: 'secondary' }}
-      >
-        <PenIcon className="mr-[3px] h-[11px]" /> Edit Article
-      </Button>
-      <Button
-        disabled={isDeleting}
-        onClick={onDeleteArticle}
-        className="ml-1"
-        variantProps={{ size: 'sm', variant: 'danger-2' }}
-      >
-        <TrashIcon className="mr-[3px] h-[11px]" /> Delete Article
-      </Button>
+      {currentUser?.id === article?.authorId ? (
+        <>
+          <Button
+            asLink
+            href={`/editor/${article?.slug}`}
+            className="ml-6"
+            variantProps={{ size: 'sm', variant: 'secondary' }}
+          >
+            <PenIcon className="mr-[3px] h-[11px]" /> Edit Article
+          </Button>
+          <Button
+            disabled={isDeleting}
+            onClick={onDeleteArticle}
+            className="ml-1"
+            variantProps={{ size: 'sm', variant: 'danger-2' }}
+          >
+            <TrashIcon className="mr-[3px] h-[11px]" /> Delete Article
+          </Button>
+        </>
+      ) : (
+        <>
+          <Button
+            className="ml-6"
+            variantProps={{ size: 'sm', variant: 'secondary' }}
+          >
+            <PenIcon className="mr-[3px] h-[11px]" /> Follow{' '}
+            {article?.author.username}
+          </Button>
+          <Button
+            className="ml-1"
+            variantProps={{ size: 'sm', variant: 'primary-outline' }}
+          >
+            <TrashIcon className="mr-[3px] h-[11px]" /> Favorite Article
+          </Button>
+        </>
+      )}
     </div>
   );
 };

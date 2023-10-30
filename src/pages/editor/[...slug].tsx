@@ -12,7 +12,8 @@ import Textarea from '~/components/Textarea';
 
 export default function CreateArticlePage() {
   const router = useRouter();
-  const articleSlug = router.query.slug as string;
+  const articleSlug = (router.query.slug as string[]).join('/');
+
   const { currentUser, isFetchingUser } = useAuth();
 
   const { data: article } = trpc.article.getBySlug.useQuery(articleSlug);

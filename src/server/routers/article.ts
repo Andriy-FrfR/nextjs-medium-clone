@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-import { prisma } from '../prisma';
 import { generateSlug } from '../helpers';
 import { privateProcedure, publicProcedure, router } from '../trpc';
 
@@ -17,7 +16,7 @@ export const articleRouter = router({
     .mutation(async ({ input, ctx }) => {
       const slug = generateSlug(input.title);
 
-      const article = await prisma.article.create({
+      const article = await ctx.prisma.article.create({
         data: { ...input, slug, authorId: ctx.userId },
         select: { id: true, slug: true },
       });
@@ -40,7 +39,7 @@ export const articleRouter = router({
       );
 
       if (filteredInput.title) {
-        const article = await prisma.article.findUnique({
+        const article = await ctx.prisma.article.findUnique({
           where: { slug: input.slug },
           select: { title: true },
         });
@@ -50,7 +49,7 @@ export const articleRouter = router({
         }
       }
 
-      const updatedArticle = await prisma.article.update({
+      const updatedArticle = await ctx.prisma.article.update({
         where: { slug: input.slug, authorId: ctx.userId },
         data: filteredInput,
         select: { slug: true },
@@ -61,14 +60,14 @@ export const articleRouter = router({
   delete: privateProcedure
     .input(z.number())
     .mutation(async ({ input: articleId, ctx }) => {
-      await prisma.article.delete({
+      await ctx.prisma.article.delete({
         where: { id: articleId, authorId: ctx.userId },
       });
     }),
   getBySlug: publicProcedure
     .input(z.string())
-    .query(async ({ input: slug }) => {
-      const article = await prisma.article.findUnique({
+    .query(async ({ input: slug, ctx }) => {
+      const article = await ctx.prisma.article.findUnique({
         where: { slug },
         include: {
           author: { select: { username: true, email: true, image: true } },
