@@ -103,7 +103,7 @@ const Header = () => {
               key={href}
               href={href}
               className={`ml-4 flex items-center text-black ${
-                router.pathname === href
+                router.asPath === href
                   ? 'text-opacity-80'
                   : 'text-opacity-30 hover:text-opacity-60'
               }`}
