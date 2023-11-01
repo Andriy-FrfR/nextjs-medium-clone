@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 
 import { generateSlug } from '../helpers';
 import { privateProcedure, publicProcedure, router } from '../trpc';
@@ -78,17 +79,48 @@ export const articleRouter = router({
               followedBy: { where: { id: ctx.userId } },
             },
           },
+          favoritedBy: { where: { id: ctx.userId } },
         },
       });
 
       return article
         ? {
             ...article,
+            isFavorited: Boolean(article.favoritedBy[0]),
             author: {
               ...article.author,
-              isFollowing: Boolean(article?.author.followedBy[0]),
+              isFollowing: Boolean(article.author.followedBy[0]),
             },
           }
         : null;
+    }),
+  changeArticleFavoritedStatus: privateProcedure
+    .input(z.number())
+    .mutation(async ({ input: articleId, ctx }) => {
+      const article = await ctx.prisma.article.findUnique({
+        where: {
+          id: articleId,
+        },
+        select: { favoritedBy: { where: { id: ctx.userId } } },
+      });
+
+      if (!article) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Article not found',
+        });
+      }
+
+      const isFavorited = Boolean(article.favoritedBy[0]);
+
+      await ctx.prisma.article.update({
+        where: { id: articleId },
+        data: {
+          favoritedBy: {
+            connect: !isFavorited ? { id: ctx.userId } : undefined,
+            disconnect: isFavorited ? { id: ctx.userId } : undefined,
+          },
+        },
+      });
     }),
 });

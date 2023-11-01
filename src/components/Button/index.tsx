@@ -9,12 +9,14 @@ const button = tv({
       primary: 'bg-green-550 text-white',
       'primary-outline':
         'border border-green-550 text-green-550 hover:bg-green-550 hover:text-white active:text-white active:bg-green-600 active:border-green-600',
-      secondary:
+      'secondary-outline':
         'border border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-white active:text-white active:bg-gray-500 active:border-gray-500',
-      tertiary:
+      'tertiary-outline':
         'border border-gray-400 text-black bg-gray-100 hover:bg-white active:bg-gray-300',
-      'danger-1': 'border border-red-700 text-red-700',
-      'danger-2': 'border border-[#B85C5C] text-[#B85C5C]',
+      'danger-outline-1':
+        'border border-red-700 text-red-700 hover:bg-red-700 hover:text-white active:border-red-900 active:bg-red-900 active:text-white',
+      'danger-outline-2':
+        'border border-[#B85C5C] text-[#B85C5C] hover:bg-[#B85C5C] hover:text-white active:text-gray-300 active:bg-[#6a3535] active:border-[#6a3535]',
     },
     size: { lg: 'px-6 py-3 text-xl', md: 'px-4 py-2', sm: 'py-1 px-2 text-sm' },
     disabled: {
@@ -26,18 +28,6 @@ const button = tv({
       variant: 'primary',
       disabled: false,
       className: 'hover:bg-green-600 active:bg-green-700',
-    },
-    {
-      variant: 'danger-1',
-      disabled: false,
-      className:
-        'hover:bg-red-700 hover:text-white active:border-red-900 active:bg-red-900 active:text-white',
-    },
-    {
-      variant: 'danger-2',
-      disabled: false,
-      className:
-        'hover:bg-[#B85C5C] hover:text-white active:text-gray-300 active:bg-[#6a3535] active:border-[#6a3535]',
     },
   ],
   defaultVariants: {

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
+import { useSearchParams } from 'next/navigation';
 
 import { trpc } from '~/utils/trpc';
 import Input from '~/components/Input';
@@ -33,6 +34,8 @@ const INPUTS: { placeholder: string; type: string; name: InputName }[] = [
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const navigateToAfterRegister = searchParams.get('navigateTo');
 
   const { handleSubmit, register, getValues } =
     useForm<Record<InputName, string>>();
@@ -44,7 +47,7 @@ export default function RegisterPage() {
     onSuccess: async (res) => {
       Cookies.set('accessToken', res.accessToken);
       await trpcUtils.user.getCurrentUser.invalidate();
-      router.replace('/');
+      router.replace(navigateToAfterRegister ? navigateToAfterRegister : '/');
     },
     onError: (e) => {
       if (
@@ -79,7 +82,11 @@ export default function RegisterPage() {
       <div className="mx-auto mt-5 max-w-[580px] px-5 text-center">
         <h1 className="text-[40px]">Sign up</h1>
         <Link
-          href="/login"
+          href={
+            navigateToAfterRegister
+              ? `/login?navigateTo=${navigateToAfterRegister}`
+              : '/login'
+          }
           className="text-green-550 hover:text-green-650 hover:underline"
         >
           Have an account?

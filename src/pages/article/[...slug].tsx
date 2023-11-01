@@ -10,12 +10,15 @@ import { useAuth } from '~/contexts/auth';
 import PenIcon from '~/assets/svg/pen.svg';
 import PlusIcon from '~/assets/svg/plus.svg';
 import TrashIcon from '~/assets/svg/trash.svg';
+import HeartIcon from '~/assets/svg/heart.svg';
 import { RouterOutputs, trpc } from '~/utils/trpc';
 import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.jpeg';
 
 export default function ArticlePage() {
   const router = useRouter();
   const articleSlug = (router.query.slug as string[]).join('/');
+
+  const { currentUser } = useAuth();
 
   const trpcUtils = trpc.useUtils();
 
@@ -40,7 +43,24 @@ export default function ArticlePage() {
 
   const onChangeFollowStatus = () => {
     if (!article) return;
+    if (!currentUser)
+      return router.push(`/register?navigateTo=${router.asPath}`);
     changeFollowStatus(article.authorId);
+  };
+
+  const {
+    mutate: changeFavoritedStatus,
+    isLoading: isChangingFavoritedStatus,
+  } = trpc.article.changeArticleFavoritedStatus.useMutation({
+    onSuccess: () => trpcUtils.article.getBySlug.invalidate(),
+    onError: () => toast('Something went wrong', { type: 'error' }),
+  });
+
+  const onChangeFavoritedStatus = () => {
+    if (!article) return;
+    if (!currentUser)
+      return router.push(`/register?navigateTo=${router.asPath}`);
+    changeFavoritedStatus(article.id);
   };
 
   if (!article) return null;
@@ -62,6 +82,8 @@ export default function ArticlePage() {
             isDeleting={isDeleting}
             onChangeFollowStatus={onChangeFollowStatus}
             isChangingFollowStatus={isChangingFollowStatus}
+            onChangeFavoritedStatus={onChangeFavoritedStatus}
+            isChangingFavoritedStatus={isChangingFavoritedStatus}
           />
         </div>
       </div>
@@ -75,6 +97,8 @@ export default function ArticlePage() {
           isDeleting={isDeleting}
           onChangeFollowStatus={onChangeFollowStatus}
           isChangingFollowStatus={isChangingFollowStatus}
+          onChangeFavoritedStatus={onChangeFavoritedStatus}
+          isChangingFavoritedStatus={isChangingFavoritedStatus}
           showAuthorUsernameGreen
         />
       </div>
@@ -87,6 +111,8 @@ type ArticleInfoProps = {
   isDeleting: boolean;
   onChangeFollowStatus: () => void;
   isChangingFollowStatus: boolean;
+  onChangeFavoritedStatus: () => void;
+  isChangingFavoritedStatus: boolean;
   article?: RouterOutputs['article']['getBySlug'];
   className?: string;
   showAuthorUsernameGreen?: boolean;
@@ -97,6 +123,8 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
   className,
   onDeleteArticle,
   isDeleting,
+  onChangeFavoritedStatus,
+  isChangingFavoritedStatus,
   onChangeFollowStatus,
   isChangingFollowStatus,
   showAuthorUsernameGreen,
@@ -137,7 +165,7 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
             asLink
             href={`/editor/${article?.slug}`}
             className="ml-6"
-            variantProps={{ size: 'sm', variant: 'secondary' }}
+            variantProps={{ size: 'sm', variant: 'secondary-outline' }}
           >
             <PenIcon className="mr-[3px] h-[11px]" /> Edit Article
           </Button>
@@ -147,7 +175,7 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
             className="ml-1"
             variantProps={{
               size: 'sm',
-              variant: 'danger-2',
+              variant: 'danger-outline-2',
               disabled: isDeleting,
             }}
           >
@@ -162,7 +190,9 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
             className="ml-6"
             variantProps={{
               size: 'sm',
-              variant: article?.author.isFollowing ? 'tertiary' : 'secondary',
+              variant: article?.author.isFollowing
+                ? 'tertiary-outline'
+                : 'secondary-outline',
               disabled: isChangingFollowStatus,
             }}
           >
@@ -171,10 +201,17 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
             {article?.author.username}
           </Button>
           <Button
+            onClick={onChangeFavoritedStatus}
+            disabled={isChangingFavoritedStatus}
             className="ml-1"
-            variantProps={{ size: 'sm', variant: 'primary-outline' }}
+            variantProps={{
+              size: 'sm',
+              variant: 'primary-outline',
+              disabled: isChangingFavoritedStatus,
+            }}
           >
-            <TrashIcon className="mr-[3px] h-[11px]" /> Favorite Article
+            <HeartIcon className="mr-[3px] h-[11px]" />{' '}
+            {article?.isFavorited ? 'Unfavorite' : 'Favorite'} Article
           </Button>
         </>
       )}

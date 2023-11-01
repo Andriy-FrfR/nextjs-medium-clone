@@ -137,7 +137,7 @@ export default function SettingsPage() {
           onClick={onLogout}
           disabled={isLoading}
           variantProps={{
-            variant: 'danger-1',
+            variant: 'danger-outline-1',
             size: 'md',
             disabled: isLoading,
           }}
