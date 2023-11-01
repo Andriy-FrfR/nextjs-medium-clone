@@ -14,9 +14,10 @@ export default function CreateArticlePage() {
   const router = useRouter();
   const articleSlug = (router.query.slug as string[]).join('/');
 
-  const { currentUser, isFetchingUser } = useAuth();
+  const { currentUser } = useAuth();
 
-  const { data: article } = trpc.article.getBySlug.useQuery(articleSlug);
+  const { data: article, isLoading: isFetchingArticle } =
+    trpc.article.getBySlug.useQuery(articleSlug);
 
   const { mutate: updateArticle, isLoading } = trpc.article.update.useMutation({
     onSuccess: (data) => router.push(`/article/${data.slug}`),
@@ -38,13 +39,15 @@ export default function CreateArticlePage() {
   };
 
   useEffect(() => {
+    if (isFetchingArticle) return;
+
     // If user is not author of the article, navigate to home page
     if (article?.authorId !== currentUser?.id) {
       router.replace('/');
     }
-  }, [article?.authorId, currentUser?.id, router]);
+  }, [article?.authorId, currentUser?.id, isFetchingArticle, router]);
 
-  if (article?.authorId !== currentUser?.id || isFetchingUser) return null;
+  if (article?.authorId !== currentUser?.id || isFetchingArticle) return null;
 
   return (
     <>

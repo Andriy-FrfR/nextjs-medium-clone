@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import dayjs from 'dayjs';
 import { FC } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -12,6 +13,7 @@ import PlusIcon from '~/assets/svg/plus.svg';
 import TrashIcon from '~/assets/svg/trash.svg';
 import HeartIcon from '~/assets/svg/heart.svg';
 import { RouterOutputs, trpc } from '~/utils/trpc';
+import ArticleCommentsSection from '~/components/ArticleCommentsSection';
 import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.jpeg';
 
 export default function ArticlePage() {
@@ -101,6 +103,10 @@ export default function ArticlePage() {
           isChangingFavoritedStatus={isChangingFavoritedStatus}
           showAuthorUsernameGreen
         />
+        <ArticleCommentsSection
+          className="mt-12 self-center"
+          articleId={article.id}
+        />
       </div>
     </>
   );
@@ -156,7 +162,7 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
           {article?.author.username}
         </Link>
         <p className="text-[13px] font-thin leading-4 text-gray-400">
-          {article?.createdAt?.toDateString()}
+          {dayjs(article?.createdAt).format('MMMM D, YYYY')}
         </p>
       </div>
       {currentUser?.id === article?.authorId ? (
