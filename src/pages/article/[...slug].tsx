@@ -8,6 +8,7 @@ import { useRouter } from 'next/router';
 import Button from '~/components/Button';
 import { useAuth } from '~/contexts/auth';
 import PenIcon from '~/assets/svg/pen.svg';
+import PlusIcon from '~/assets/svg/plus.svg';
 import TrashIcon from '~/assets/svg/trash.svg';
 import { RouterOutputs, trpc } from '~/utils/trpc';
 import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.jpeg';
@@ -15,6 +16,8 @@ import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.
 export default function ArticlePage() {
   const router = useRouter();
   const articleSlug = (router.query.slug as string[]).join('/');
+
+  const trpcUtils = trpc.useUtils();
 
   const { data: article } = trpc.article.getBySlug.useQuery(articleSlug);
 
@@ -27,6 +30,17 @@ export default function ArticlePage() {
   const onDeleteArticle = () => {
     if (!article) return;
     deleteArticle(article.id);
+  };
+
+  const { mutate: changeFollowStatus, isLoading: isChangingFollowStatus } =
+    trpc.user.changeUserFollowingStatus.useMutation({
+      onSuccess: () => trpcUtils.article.getBySlug.invalidate(),
+      onError: () => toast('Something went wrong', { type: 'error' }),
+    });
+
+  const onChangeFollowStatus = () => {
+    if (!article) return;
+    changeFollowStatus(article.authorId);
   };
 
   if (!article) return null;
@@ -46,6 +60,8 @@ export default function ArticlePage() {
             article={article}
             onDeleteArticle={onDeleteArticle}
             isDeleting={isDeleting}
+            onChangeFollowStatus={onChangeFollowStatus}
+            isChangingFollowStatus={isChangingFollowStatus}
           />
         </div>
       </div>
@@ -57,6 +73,8 @@ export default function ArticlePage() {
           article={article}
           onDeleteArticle={onDeleteArticle}
           isDeleting={isDeleting}
+          onChangeFollowStatus={onChangeFollowStatus}
+          isChangingFollowStatus={isChangingFollowStatus}
           showAuthorUsernameGreen
         />
       </div>
@@ -67,6 +85,8 @@ export default function ArticlePage() {
 type ArticleInfoProps = {
   onDeleteArticle: () => void;
   isDeleting: boolean;
+  onChangeFollowStatus: () => void;
+  isChangingFollowStatus: boolean;
   article?: RouterOutputs['article']['getBySlug'];
   className?: string;
   showAuthorUsernameGreen?: boolean;
@@ -77,6 +97,8 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
   className,
   onDeleteArticle,
   isDeleting,
+  onChangeFollowStatus,
+  isChangingFollowStatus,
   showAuthorUsernameGreen,
 }) => {
   const { currentUser } = useAuth();
@@ -120,10 +142,14 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
             <PenIcon className="mr-[3px] h-[11px]" /> Edit Article
           </Button>
           <Button
-            disabled={isDeleting}
             onClick={onDeleteArticle}
+            disabled={isDeleting}
             className="ml-1"
-            variantProps={{ size: 'sm', variant: 'danger-2' }}
+            variantProps={{
+              size: 'sm',
+              variant: 'danger-2',
+              disabled: isDeleting,
+            }}
           >
             <TrashIcon className="mr-[3px] h-[11px]" /> Delete Article
           </Button>
@@ -131,10 +157,17 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
       ) : (
         <>
           <Button
+            onClick={onChangeFollowStatus}
+            disabled={isChangingFollowStatus}
             className="ml-6"
-            variantProps={{ size: 'sm', variant: 'secondary' }}
+            variantProps={{
+              size: 'sm',
+              variant: article?.author.isFollowing ? 'tertiary' : 'secondary',
+              disabled: isChangingFollowStatus,
+            }}
           >
-            <PenIcon className="mr-[3px] h-[11px]" /> Follow{' '}
+            <PlusIcon className="mr-[3px] h-[14px]" />{' '}
+            {article?.author.isFollowing ? 'Unfollow' : 'Follow'}{' '}
             {article?.author.username}
           </Button>
           <Button

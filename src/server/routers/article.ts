@@ -70,10 +70,25 @@ export const articleRouter = router({
       const article = await ctx.prisma.article.findUnique({
         where: { slug },
         include: {
-          author: { select: { username: true, email: true, image: true } },
+          author: {
+            select: {
+              username: true,
+              email: true,
+              image: true,
+              followedBy: { where: { id: ctx.userId } },
+            },
+          },
         },
       });
 
-      return article;
+      return article
+        ? {
+            ...article,
+            author: {
+              ...article.author,
+              isFollowing: Boolean(article?.author.followedBy[0]),
+            },
+          }
+        : null;
     }),
 });

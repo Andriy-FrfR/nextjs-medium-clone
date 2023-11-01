@@ -198,4 +198,41 @@ export const userRouter = router({
 
       return { id: updatedUser.id };
     }),
+  changeUserFollowingStatus: privateProcedure
+    .input(z.number())
+    .mutation(async ({ input: targetUserId, ctx }) => {
+      const targetUser = await ctx.prisma.user.findUnique({
+        where: {
+          id: targetUserId,
+        },
+        include: {
+          followedBy: {
+            where: {
+              id: ctx.userId,
+            },
+          },
+        },
+      });
+
+      if (!targetUser) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      const isFollowing = Boolean(targetUser.followedBy[0]);
+
+      await ctx.prisma.user.update({
+        where: {
+          id: targetUser.id,
+        },
+        data: {
+          followedBy: {
+            connect: !isFollowing ? { id: ctx.userId } : undefined,
+            disconnect: isFollowing ? { id: ctx.userId } : undefined,
+          },
+        },
+      });
+    }),
 });

@@ -8,9 +8,11 @@ const button = tv({
     variant: {
       primary: 'bg-green-550 text-white',
       'primary-outline':
-        'border border-green-550 text-green-550 hover:bg-green-550 hover:text-white active:text-white active:bg-gray-500 active:border-gray-500',
+        'border border-green-550 text-green-550 hover:bg-green-550 hover:text-white active:text-white active:bg-green-600 active:border-green-600',
       secondary:
         'border border-gray-400 text-gray-400 hover:bg-gray-400 hover:text-white active:text-white active:bg-gray-500 active:border-gray-500',
+      tertiary:
+        'border border-gray-400 text-black bg-gray-100 hover:bg-white active:bg-gray-300',
       'danger-1': 'border border-red-700 text-red-700',
       'danger-2': 'border border-[#B85C5C] text-[#B85C5C]',
     },
