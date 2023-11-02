@@ -16,11 +16,14 @@ model User {
   bio      String?
   image    String?
 
-  articles          Article[]
-  followedBy        User[]           @relation("UserFollows")
-  following         User[]           @relation("UserFollows")
-  favoritedArticles Article[]        @relation("FavoritedArticles")
-  articleComments   ArticleComment[]
+  articles Article[]
+
+  followedBy User[] @relation("UserFollows")
+  following  User[] @relation("UserFollows")
+
+  favoritedArticles Article[] @relation("FavoritedArticles")
+
+  articleComments ArticleComment[]
 
   @@map("users")
 }
@@ -29,14 +32,17 @@ model Article {
   id          Int      @id() @default(autoincrement())
   slug        String   @unique
   title       String
-  description String
-  body        String
+  description String   @db.MediumText
+  body        String   @db.LongText
   createdAt   DateTime @default(now())
 
-  author      User             @relation(fields: [authorId], references: [id])
-  authorId    Int
-  favoritedBy User[]           @relation("FavoritedArticles")
-  comments    ArticleComment[]
+  author   User @relation(fields: [authorId], references: [id])
+  authorId Int
+
+  comments ArticleComment[]
+  tags     ArticleTag[]
+
+  favoritedBy User[] @relation("FavoritedArticles")
 
   @@index([authorId])
   @@map("articles")
@@ -47,11 +53,19 @@ model ArticleComment {
   body      String   @db.MediumText
   createdAt DateTime @default(now())
 
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+  author   User @relation(fields: [authorId], references: [id])
+  authorId Int
+
   article   Article @relation(fields: [articleId], references: [id])
   articleId Int
 
   @@index([authorId])
   @@index([articleId])
+}
+
+model ArticleTag {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  articles Article[]
 }

@@ -28,14 +28,15 @@ export default function CreateArticlePage() {
     title: string;
     description: string;
     body: string;
-    // tags: string;
+    tags: string;
   }>();
 
   const onSubmit = () => {
     if (!article) return;
 
     const values = getValues();
-    updateArticle({ slug: article?.slug, ...values });
+    const tags = values.tags.split(', ').filter((tag) => Boolean(tag.trim()));
+    updateArticle({ slug: article?.slug, ...values, tags });
   };
 
   useEffect(() => {
@@ -87,14 +88,15 @@ export default function CreateArticlePage() {
             disabled={isLoading}
             variantProps={{ size: 'sm', disabled: isLoading }}
           />
-          {/* <Input
+          <Input
             {...register('tags')}
+            defaultValue={article?.tags.map((tag) => tag.name).join(', ')}
             className="mb-4"
-            placeholder="Enter tags"
+            placeholder="Enter tags (separate tags with ',  ')"
             type="text"
             disabled={isLoading}
             variantProps={{ size: 'sm', disabled: isLoading }}
-          /> */}
+          />
           <Button
             type="submit"
             className="self-end"

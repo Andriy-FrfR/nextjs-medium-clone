@@ -11,14 +11,24 @@ export const articleRouter = router({
         title: z.string().min(1, "title can't be blank"),
         description: z.string().min(1, "description can't be blank"),
         body: z.string().min(1, "body can't be blank"),
-        // tags: z.array(z.string()).optional(),
+        tags: z.array(z.string().min(1)).optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       const slug = generateSlug(input.title);
 
       const article = await ctx.prisma.article.create({
-        data: { ...input, slug, authorId: ctx.userId },
+        data: {
+          ...input,
+          slug,
+          authorId: ctx.userId,
+          tags: {
+            connectOrCreate: input.tags?.map((tagName) => ({
+              where: { name: tagName },
+              create: { name: tagName },
+            })),
+          },
+        },
         select: { id: true, slug: true },
       });
 
@@ -31,28 +41,38 @@ export const articleRouter = router({
         title: z.string().optional(),
         description: z.string().optional(),
         body: z.string().optional(),
+        tags: z.array(z.string().min(1)).optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const { slug, tags, ...rest } = input;
+
+      const article = await ctx.prisma.article.findUnique({
+        where: { slug },
+        select: { title: true, tags: true },
+      });
+
       // Filter input to avoid fields with empty strings
       const filteredInput = Object.fromEntries(
-        Object.entries(input).filter(([_, value]) => Boolean(value)),
+        Object.entries(rest).filter(([_, value]) => Boolean(value)),
       );
 
-      if (filteredInput.title) {
-        const article = await ctx.prisma.article.findUnique({
-          where: { slug: input.slug },
-          select: { title: true },
-        });
-
-        if (article?.title !== filteredInput.title) {
-          filteredInput.slug = generateSlug(filteredInput.title);
-        }
+      if (filteredInput.title && article?.title !== filteredInput.title) {
+        filteredInput.slug = generateSlug(filteredInput.title);
       }
 
       const updatedArticle = await ctx.prisma.article.update({
         where: { slug: input.slug, authorId: ctx.userId },
-        data: filteredInput,
+        data: {
+          ...filteredInput,
+          tags: {
+            disconnect: article?.tags.map((tag) => ({ name: tag.name })),
+            connectOrCreate: tags?.map((tagName) => ({
+              where: { name: tagName },
+              create: { name: tagName },
+            })),
+          },
+        },
         select: { slug: true },
       });
 
@@ -71,6 +91,7 @@ export const articleRouter = router({
       const article = await ctx.prisma.article.findUnique({
         where: { slug },
         include: {
+          tags: true,
           author: {
             select: {
               username: true,

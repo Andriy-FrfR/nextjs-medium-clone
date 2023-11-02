@@ -90,8 +90,22 @@ export default function ArticlePage() {
         </div>
       </div>
       <div className="mx-auto mb-10 mt-8 flex max-w-[1150px] flex-col px-5">
-        <p className="text-[19px] leading-7 text-gray-900">{article?.body}</p>
-        <div className="mt-4 border-t border-black border-opacity-10" />
+        <p className="break-all text-[19px] leading-7 text-gray-900">
+          {article?.body}
+        </p>
+        {article.tags.length > 0 && (
+          <ul className="mt-5 flex flex-wrap gap-x-1 gap-y-2">
+            {article.tags.map((tag) => (
+              <li
+                className="rounded-full border border-gray-300 px-[10px] py-[2px] text-[13px] text-gray-400"
+                key={tag.id}
+              >
+                {tag.name}
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-5 border-t border-black border-opacity-10" />
         <ArticleInfo
           className="mt-4 self-center"
           article={article}
