@@ -164,7 +164,7 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
           alt="Author image"
         />
       </Link>
-      <div className="ml-2">
+      <div className="ml-2 flex flex-col">
         <Link
           href={`/@${article?.author.username}`}
           className={`font-medium leading-4 ${
@@ -175,7 +175,7 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
         >
           {article?.author.username}
         </Link>
-        <p className="text-[13px] font-thin leading-4 text-gray-400">
+        <p className="text-[13px] font-light leading-4 text-gray-400">
           {dayjs(article?.createdAt).format('MMMM D, YYYY')}
         </p>
       </div>

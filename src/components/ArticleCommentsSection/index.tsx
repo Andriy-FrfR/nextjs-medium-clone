@@ -147,11 +147,11 @@ const CommentsListItem: FC<CommentsListItemProps> = ({ comment }) => {
           </Link>
           <Link
             href={`/@${comment.author.username}`}
-            className="ml-2 text-[13px] font-thin text-green-550 hover:text-green-650 hover:underline"
+            className="ml-2 text-[13px] font-light text-green-550 hover:text-green-650 hover:underline"
           >
             {comment.author.username}
           </Link>
-          <p className="ml-2 text-[13px] font-thin text-gray-400">
+          <p className="ml-2 text-[13px] font-light text-gray-400">
             {dayjs(comment.createdAt).format('MMMM D, YYYY')}
           </p>
         </div>

@@ -85,36 +85,6 @@ export const articleRouter = router({
         where: { id: articleId, authorId: ctx.userId },
       });
     }),
-  getBySlug: publicProcedure
-    .input(z.string())
-    .query(async ({ input: slug, ctx }) => {
-      const article = await ctx.prisma.article.findUnique({
-        where: { slug },
-        include: {
-          tags: true,
-          author: {
-            select: {
-              username: true,
-              email: true,
-              image: true,
-              followedBy: { where: { id: ctx.userId } },
-            },
-          },
-          favoritedBy: { where: { id: ctx.userId } },
-        },
-      });
-
-      return article
-        ? {
-            ...article,
-            isFavorited: Boolean(article.favoritedBy[0]),
-            author: {
-              ...article.author,
-              isFollowing: Boolean(article.author.followedBy[0]),
-            },
-          }
-        : null;
-    }),
   changeArticleFavoritedStatus: privateProcedure
     .input(z.number())
     .mutation(async ({ input: articleId, ctx }) => {
@@ -144,4 +114,103 @@ export const articleRouter = router({
         },
       });
     }),
+  getBySlug: publicProcedure
+    .input(z.string())
+    .query(async ({ input: slug, ctx }) => {
+      const article = await ctx.prisma.article.findUnique({
+        where: { slug },
+        include: {
+          tags: true,
+          author: {
+            select: {
+              username: true,
+              email: true,
+              image: true,
+              followedBy: { where: { id: ctx.userId } },
+            },
+          },
+          favoritedBy: ctx.userId ? { where: { id: ctx.userId } } : undefined,
+        },
+      });
+
+      return article
+        ? {
+            ...article,
+            isFavorited: ctx.userId ? Boolean(article.favoritedBy[0]) : false,
+            author: {
+              ...article.author,
+              isFollowing: Boolean(article.author.followedBy[0]),
+            },
+          }
+        : null;
+    }),
+  getArticles: publicProcedure
+    .input(
+      z
+        .object({
+          authorId: z.number().optional(),
+          favoritedByUserId: z.number().optional(),
+          tag: z.string().min(1).optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ input, ctx }) => {
+      const articles = await ctx.prisma.article.findMany({
+        where: {
+          authorId: input?.authorId,
+          favoritedBy: input?.favoritedByUserId
+            ? { some: { id: input?.favoritedByUserId } }
+            : undefined,
+          tags: input?.tag ? { some: { name: input?.tag } } : undefined,
+        },
+        include: {
+          tags: true,
+          author: {
+            select: {
+              image: true,
+              username: true,
+            },
+          },
+          favoritedBy: {
+            where: { id: ctx.userId },
+          },
+          _count: {
+            select: { favoritedBy: true },
+          },
+        },
+      });
+
+      return articles.map((article) => ({
+        ...article,
+        isFavorited: Boolean(article.favoritedBy[0]),
+      }));
+    }),
+  getUserFeed: privateProcedure.query(async ({ ctx }) => {
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: ctx.userId },
+      include: { following: { select: { id: true } } },
+    });
+    const followingUsersIds = user?.following.map((user) => user.id);
+
+    const articles = await ctx.prisma.article.findMany({
+      where: {
+        authorId: { in: followingUsersIds },
+      },
+      include: {
+        tags: true,
+        author: {
+          select: {
+            image: true,
+            username: true,
+          },
+        },
+        favoritedBy: { where: { id: ctx.userId }, include: { _count: true } },
+      },
+    });
+
+    return articles.map((article) => ({
+      ...article,
+      isFavorited: Boolean(article.favoritedBy[0]),
+    }));
+  }),
 });

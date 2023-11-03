@@ -120,6 +120,31 @@ export const userRouter = router({
       select: { id: true, username: true, email: true, bio: true, image: true },
     });
   }),
+  getUserByUsername: publicProcedure
+    .input(z.string())
+    .query(async ({ ctx, input: username }) => {
+      const user = await ctx.prisma.user.findUnique({
+        where: { username },
+        select: {
+          id: true,
+          image: true,
+          username: true,
+          followedBy: { where: { id: ctx.userId } },
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          message: 'user with this username does not exist',
+          code: 'NOT_FOUND',
+        });
+      }
+
+      return {
+        ...user,
+        isFollowing: Boolean(user?.followedBy[0]),
+      };
+    }),
   update: privateProcedure
     .input(
       z.object({
