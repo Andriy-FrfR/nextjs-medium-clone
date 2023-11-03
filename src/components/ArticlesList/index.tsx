@@ -10,7 +10,7 @@ import { RouterOutputs, trpc } from '~/utils/trpc';
 import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.jpeg';
 
 type Props = {
-  articles: RouterOutputs['article']['getArticles'];
+  articles: RouterOutputs['article']['listArticles'];
   className?: string;
 };
 
@@ -18,7 +18,7 @@ const ArticlesList: FC<Props> = ({ articles, className }) => {
   return (
     <ul className={`flex flex-col ${className}`}>
       {articles.map((article) => (
-        <ListItem key={article.id} article={article} />
+        <ListItem key={article.slug} article={article} />
       ))}
     </ul>
   );
@@ -27,7 +27,7 @@ const ArticlesList: FC<Props> = ({ articles, className }) => {
 export default ArticlesList;
 
 type ListItemProps = {
-  article: RouterOutputs['article']['getArticles'][number];
+  article: RouterOutputs['article']['listArticles'][number];
 };
 
 const ListItem: FC<ListItemProps> = ({ article }) => {
@@ -36,22 +36,22 @@ const ListItem: FC<ListItemProps> = ({ article }) => {
   const {
     mutate: changeFavoritedStatus,
     isLoading: isChangingFavoritedStatus,
-  } = trpc.article.changeArticleFavoritedStatus.useMutation({
+  } = trpc.article.changeFavoritedStatus.useMutation({
     onSuccess: () => {
-      trpcUtils.article.getArticles.invalidate();
+      trpcUtils.article.listArticles.invalidate();
       trpcUtils.article.getUserFeed.invalidate();
     },
     onError: () => toast('Something went wrong', { type: 'error' }),
   });
 
   const handleChangeFavoritedStatus = () => {
-    changeFavoritedStatus(article.id);
+    changeFavoritedStatus(article.slug);
   };
 
   return (
     <li
       className="border-t border-black border-opacity-10 py-6 first:border-none"
-      key={article.id}
+      key={article.slug}
     >
       <div className="flex justify-between">
         <div className="flex items-center">
@@ -88,7 +88,7 @@ const ListItem: FC<ListItemProps> = ({ article }) => {
           }}
         >
           <HeartIcon className="mr-[3px] h-3" />
-          {article._count.favoritedBy}
+          {article.favoritesCount}
         </Button>
       </div>
       <Link className="inline-block" href={`/article/${article.slug}`}>
@@ -112,9 +112,9 @@ const ListItem: FC<ListItemProps> = ({ article }) => {
               {article.tags.map((tag) => (
                 <li
                   className="rounded-full border border-gray-300 px-2 text-[13px] text-gray-400"
-                  key={tag.id}
+                  key={tag}
                 >
-                  {tag.name}
+                  {tag}
                 </li>
               ))}
             </ul>

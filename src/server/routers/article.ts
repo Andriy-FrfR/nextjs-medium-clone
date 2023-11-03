@@ -17,7 +17,7 @@ export const articleRouter = router({
     .mutation(async ({ input, ctx }) => {
       const slug = generateSlug(input.title);
 
-      const article = await ctx.prisma.article.create({
+      const createdArticle = await ctx.prisma.article.create({
         data: {
           ...input,
           slug,
@@ -29,10 +29,10 @@ export const articleRouter = router({
             })),
           },
         },
-        select: { id: true, slug: true },
+        select: { slug: true },
       });
 
-      return article;
+      return createdArticle.slug;
     }),
   update: privateProcedure
     .input(
@@ -45,28 +45,38 @@ export const articleRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { slug, tags, ...rest } = input;
+      const { slug, tags, ...updatedFields } = input;
 
       const article = await ctx.prisma.article.findUnique({
         where: { slug },
         select: { title: true, tags: true },
       });
 
+      if (!article) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Article not found',
+        });
+      }
+
       // Filter input to avoid fields with empty strings
-      const filteredInput = Object.fromEntries(
-        Object.entries(rest).filter(([_, value]) => Boolean(value)),
+      const filteredUpdatedFields = Object.fromEntries(
+        Object.entries(updatedFields).filter(([_, value]) => Boolean(value)),
       );
 
-      if (filteredInput.title && article?.title !== filteredInput.title) {
-        filteredInput.slug = generateSlug(filteredInput.title);
+      if (
+        filteredUpdatedFields.title &&
+        article.title !== filteredUpdatedFields.title
+      ) {
+        filteredUpdatedFields.slug = generateSlug(filteredUpdatedFields.title);
       }
 
       const updatedArticle = await ctx.prisma.article.update({
         where: { slug: input.slug, authorId: ctx.userId },
         data: {
-          ...filteredInput,
+          ...filteredUpdatedFields,
           tags: {
-            disconnect: article?.tags.map((tag) => ({ name: tag.name })),
+            disconnect: article.tags.map((tag) => ({ name: tag.name })),
             connectOrCreate: tags?.map((tagName) => ({
               where: { name: tagName },
               create: { name: tagName },
@@ -76,21 +86,21 @@ export const articleRouter = router({
         select: { slug: true },
       });
 
-      return { slug: updatedArticle.slug };
+      return updatedArticle.slug;
     }),
   delete: privateProcedure
-    .input(z.number())
-    .mutation(async ({ input: articleId, ctx }) => {
+    .input(z.string())
+    .mutation(async ({ input: slug, ctx }) => {
       await ctx.prisma.article.delete({
-        where: { id: articleId, authorId: ctx.userId },
+        where: { slug, authorId: ctx.userId },
       });
     }),
-  changeArticleFavoritedStatus: privateProcedure
-    .input(z.number())
-    .mutation(async ({ input: articleId, ctx }) => {
+  changeFavoritedStatus: privateProcedure
+    .input(z.string())
+    .mutation(async ({ input: slug, ctx }) => {
       const article = await ctx.prisma.article.findUnique({
         where: {
-          id: articleId,
+          slug,
         },
         select: { favoritedBy: { where: { id: ctx.userId } } },
       });
@@ -104,15 +114,18 @@ export const articleRouter = router({
 
       const isFavorited = Boolean(article.favoritedBy[0]);
 
-      await ctx.prisma.article.update({
-        where: { id: articleId },
+      const updatedArticle = await ctx.prisma.article.update({
+        where: { slug },
         data: {
           favoritedBy: {
             connect: !isFavorited ? { id: ctx.userId } : undefined,
             disconnect: isFavorited ? { id: ctx.userId } : undefined,
           },
         },
+        select: { slug: true },
       });
+
+      return updatedArticle.slug;
     }),
   getBySlug: publicProcedure
     .input(z.string())
@@ -123,28 +136,44 @@ export const articleRouter = router({
           tags: true,
           author: {
             select: {
+              id: true,
               username: true,
-              email: true,
               image: true,
+              bio: true,
               followedBy: { where: { id: ctx.userId } },
             },
           },
-          favoritedBy: ctx.userId ? { where: { id: ctx.userId } } : undefined,
+          favoritedBy: { where: { id: ctx.userId } },
+          _count: { select: { favoritedBy: true } },
         },
       });
 
-      return article
-        ? {
-            ...article,
-            isFavorited: ctx.userId ? Boolean(article.favoritedBy[0]) : false,
-            author: {
-              ...article.author,
-              isFollowing: Boolean(article.author.followedBy[0]),
-            },
-          }
-        : null;
+      if (!article) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Article not found',
+        });
+      }
+
+      return {
+        slug: article.slug,
+        title: article.title,
+        description: article.description,
+        body: article.body,
+        tags: article.tags.map((tag) => tag.name),
+        createdAt: article.createdAt,
+        isFavorited: Boolean(article.favoritedBy[0]),
+        favoritesCount: article._count.favoritedBy,
+        author: {
+          id: article.author.id,
+          username: article.author.username,
+          image: article.author.image,
+          bio: article.author.bio,
+          isFollowing: Boolean(article.author.followedBy[0]),
+        },
+      };
     }),
-  getArticles: publicProcedure
+  listArticles: publicProcedure
     .input(
       z
         .object({
@@ -158,22 +187,21 @@ export const articleRouter = router({
       const articles = await ctx.prisma.article.findMany({
         where: {
           authorId: input?.authorId,
-          favoritedBy: input?.favoritedByUserId
-            ? { some: { id: input?.favoritedByUserId } }
-            : undefined,
-          tags: input?.tag ? { some: { name: input?.tag } } : undefined,
+          favoritedBy: { some: { id: input?.favoritedByUserId } },
+          tags: { some: { name: input?.tag } },
         },
         include: {
           tags: true,
           author: {
             select: {
-              image: true,
+              id: true,
               username: true,
+              image: true,
+              bio: true,
+              followedBy: { where: { id: ctx.userId } },
             },
           },
-          favoritedBy: {
-            where: { id: ctx.userId },
-          },
+          favoritedBy: { where: { id: ctx.userId } },
           _count: {
             select: { favoritedBy: true },
           },
@@ -181,8 +209,21 @@ export const articleRouter = router({
       });
 
       return articles.map((article) => ({
-        ...article,
+        slug: article.slug,
+        title: article.title,
+        description: article.description,
+        body: article.body,
+        tags: article.tags.map((tag) => tag.name),
+        createdAt: article.createdAt,
         isFavorited: Boolean(article.favoritedBy[0]),
+        favoritesCount: article._count.favoritedBy,
+        author: {
+          id: article.author.id,
+          username: article.author.username,
+          image: article.author.image,
+          bio: article.author.bio,
+          isFollowing: Boolean(article.author.followedBy[0]),
+        },
       }));
     }),
   getUserFeed: privateProcedure.query(async ({ ctx }) => {
@@ -200,11 +241,14 @@ export const articleRouter = router({
         tags: true,
         author: {
           select: {
-            image: true,
+            id: true,
             username: true,
+            image: true,
+            bio: true,
+            followedBy: { where: { id: ctx.userId } },
           },
         },
-        favoritedBy: { where: { id: ctx.userId }, include: { _count: true } },
+        favoritedBy: { where: { id: ctx.userId } },
         _count: {
           select: { favoritedBy: true },
         },
@@ -212,8 +256,21 @@ export const articleRouter = router({
     });
 
     return articles.map((article) => ({
-      ...article,
+      slug: article.slug,
+      title: article.title,
+      description: article.description,
+      body: article.body,
+      tags: article.tags.map((tag) => tag.name),
+      createdAt: article.createdAt,
       isFavorited: Boolean(article.favoritedBy[0]),
+      favoritesCount: article._count.favoritedBy,
+      author: {
+        id: article.author.id,
+        username: article.author.username,
+        image: article.author.image,
+        bio: article.author.bio,
+        isFollowing: Boolean(article.author.followedBy[0]),
+      },
     }));
   }),
 });

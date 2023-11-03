@@ -114,37 +114,6 @@ export const userRouter = router({
         accessToken,
       };
     }),
-  getCurrentUser: privateProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.user.findUnique({
-      where: { id: ctx.userId },
-      select: { id: true, username: true, email: true, bio: true, image: true },
-    });
-  }),
-  getUserByUsername: publicProcedure
-    .input(z.string())
-    .query(async ({ ctx, input: username }) => {
-      const user = await ctx.prisma.user.findUnique({
-        where: { username },
-        select: {
-          id: true,
-          image: true,
-          username: true,
-          followedBy: { where: { id: ctx.userId } },
-        },
-      });
-
-      if (!user) {
-        throw new TRPCError({
-          message: 'user with this username does not exist',
-          code: 'NOT_FOUND',
-        });
-      }
-
-      return {
-        ...user,
-        isFollowing: Boolean(user?.followedBy[0]),
-      };
-    }),
   update: privateProcedure
     .input(
       z.object({
@@ -169,10 +138,8 @@ export const userRouter = router({
         const userWithEmailAlreadyExist = await ctx.prisma.user.findUnique({
           where: {
             email: filteredInput.email,
-            AND: {
-              NOT: {
-                id: ctx.userId,
-              },
+            NOT: {
+              id: ctx.userId,
             },
           },
         });
@@ -189,10 +156,8 @@ export const userRouter = router({
         const userWithUsernameAlreadyExist = await ctx.prisma.user.findUnique({
           where: {
             username: filteredInput.username,
-            AND: {
-              NOT: {
-                id: ctx.userId,
-              },
+            NOT: {
+              id: ctx.userId,
             },
           },
         });
@@ -223,7 +188,42 @@ export const userRouter = router({
 
       return { id: updatedUser.id };
     }),
-  changeUserFollowingStatus: privateProcedure
+  getCurrentUser: privateProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.user.findUnique({
+      where: { id: ctx.userId },
+      select: { id: true, username: true, email: true, bio: true, image: true },
+    });
+  }),
+  getUserByUsername: publicProcedure
+    .input(z.string())
+    .query(async ({ ctx, input: username }) => {
+      const user = await ctx.prisma.user.findUnique({
+        where: { username },
+        select: {
+          id: true,
+          image: true,
+          username: true,
+          bio: true,
+          followedBy: { where: { id: ctx.userId } },
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          message: 'user with this username does not exist',
+          code: 'NOT_FOUND',
+        });
+      }
+
+      return {
+        id: user.id,
+        username: user.username,
+        image: user.image,
+        bio: user.bio,
+        isFollowing: Boolean(user?.followedBy[0]),
+      };
+    }),
+  changeFollowingStatus: privateProcedure
     .input(z.number())
     .mutation(async ({ input: targetUserId, ctx }) => {
       const targetUser = await ctx.prisma.user.findUnique({

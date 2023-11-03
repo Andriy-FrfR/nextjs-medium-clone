@@ -16,8 +16,8 @@ export default function CreateArticlePage() {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   const { mutate: createArticle, isLoading } = trpc.article.create.useMutation({
-    onSuccess: (data) => {
-      router.push(`/article/${data.slug}`);
+    onSuccess: (createdArticleSlug) => {
+      router.push(`/article/${createdArticleSlug}`);
     },
     onError: (e) => {
       if (e.data?.zodError) {

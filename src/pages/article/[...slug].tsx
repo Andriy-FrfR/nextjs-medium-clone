@@ -34,11 +34,11 @@ export default function ArticlePage() {
 
   const onDeleteArticle = () => {
     if (!article) return;
-    deleteArticle(article.id);
+    deleteArticle(article.slug);
   };
 
   const { mutate: changeFollowStatus, isLoading: isChangingFollowStatus } =
-    trpc.user.changeUserFollowingStatus.useMutation({
+    trpc.user.changeFollowingStatus.useMutation({
       onSuccess: () => trpcUtils.article.getBySlug.invalidate(),
       onError: () => toast('Something went wrong', { type: 'error' }),
     });
@@ -47,13 +47,13 @@ export default function ArticlePage() {
     if (!article) return;
     if (!currentUser)
       return router.push(`/register?navigateTo=${router.asPath}`);
-    changeFollowStatus(article.authorId);
+    changeFollowStatus(article.author.id);
   };
 
   const {
     mutate: changeFavoritedStatus,
     isLoading: isChangingFavoritedStatus,
-  } = trpc.article.changeArticleFavoritedStatus.useMutation({
+  } = trpc.article.changeFavoritedStatus.useMutation({
     onSuccess: () => trpcUtils.article.getBySlug.invalidate(),
     onError: () => toast('Something went wrong', { type: 'error' }),
   });
@@ -62,7 +62,7 @@ export default function ArticlePage() {
     if (!article) return;
     if (!currentUser)
       return router.push(`/register?navigateTo=${router.asPath}`);
-    changeFavoritedStatus(article.id);
+    changeFavoritedStatus(article.slug);
   };
 
   if (!article) return null;
@@ -98,9 +98,9 @@ export default function ArticlePage() {
             {article.tags.map((tag) => (
               <li
                 className="rounded-full border border-gray-300 px-[10px] py-[2px] text-[13px] text-gray-400"
-                key={tag.id}
+                key={tag}
               >
-                {tag.name}
+                {tag}
               </li>
             ))}
           </ul>
@@ -119,7 +119,7 @@ export default function ArticlePage() {
         />
         <ArticleCommentsSection
           className="mt-12 self-center"
-          articleId={article.id}
+          articleSlug={article.slug}
         />
       </div>
     </>
@@ -179,7 +179,7 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
           {dayjs(article?.createdAt).format('MMMM D, YYYY')}
         </p>
       </div>
-      {currentUser?.id === article?.authorId ? (
+      {currentUser?.id === article?.author.id ? (
         <>
           <Button
             asLink
@@ -231,7 +231,8 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
             }}
           >
             <HeartIcon className="mr-[3px] h-[11px]" />{' '}
-            {article?.isFavorited ? 'Unfavorite' : 'Favorite'} Article
+            {article?.isFavorited ? 'Unfavorite' : 'Favorite'} Article (
+            {article?.favoritesCount})
           </Button>
         </>
       )}

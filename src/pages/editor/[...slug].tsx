@@ -20,7 +20,8 @@ export default function CreateArticlePage() {
     trpc.article.getBySlug.useQuery(articleSlug);
 
   const { mutate: updateArticle, isLoading } = trpc.article.update.useMutation({
-    onSuccess: (data) => router.push(`/article/${data.slug}`),
+    onSuccess: (updatedArticleSlug) =>
+      router.push(`/article/${updatedArticleSlug}`),
     onError: () => toast('Something went wrong', { type: 'error' }),
   });
 
@@ -43,12 +44,12 @@ export default function CreateArticlePage() {
     if (isFetchingArticle) return;
 
     // If user is not author of the article, navigate to home page
-    if (article?.authorId !== currentUser?.id) {
+    if (article?.author.id !== currentUser?.id) {
       router.replace('/');
     }
-  }, [article?.authorId, currentUser?.id, isFetchingArticle, router]);
+  }, [article?.author, currentUser?.id, isFetchingArticle, router]);
 
-  if (article?.authorId !== currentUser?.id || isFetchingArticle) return null;
+  if (article?.author.id !== currentUser?.id || isFetchingArticle) return null;
 
   return (
     <>
@@ -90,7 +91,7 @@ export default function CreateArticlePage() {
           />
           <Input
             {...register('tags')}
-            defaultValue={article?.tags.map((tag) => tag.name).join(', ')}
+            defaultValue={article?.tags.join(', ')}
             className="mb-4"
             placeholder="Enter tags (separate tags with ',  ')"
             type="text"

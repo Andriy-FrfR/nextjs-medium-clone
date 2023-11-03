@@ -19,7 +19,7 @@ const ProfilePageLayout: FC<Props> = ({ user }) => {
   const trpcUtils = trpc.useUtils();
 
   const { mutate: changeFollowStatus, isLoading: isChangingFollowStatus } =
-    trpc.user.changeUserFollowingStatus.useMutation({
+    trpc.user.changeFollowingStatus.useMutation({
       onSuccess: () => trpcUtils.user.getUserByUsername.invalidate(),
       onError: () => toast('Something went wrong', { type: 'error' }),
     });

@@ -24,7 +24,7 @@ export default function HomePage() {
   const { data: popularTags } = trpc.tag.getPopularTags.useQuery();
 
   const { data: globalFeed, refetch: refetchGlobalFeed } =
-    trpc.article.getArticles.useQuery({
+    trpc.article.listArticles.useQuery({
       tag: activeTag,
     });
 

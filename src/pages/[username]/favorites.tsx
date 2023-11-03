@@ -13,7 +13,7 @@ export default function ProfilePage() {
   const { data: user, isLoading: isFetchingUser } =
     trpc.user.getUserByUsername.useQuery(username);
 
-  const { data: articles } = trpc.article.getArticles.useQuery({
+  const { data: articles } = trpc.article.listArticles.useQuery({
     favoritedByUserId: user?.id,
   });
 

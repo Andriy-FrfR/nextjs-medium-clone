@@ -15,16 +15,16 @@ import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.
 
 type Props = {
   className?: string;
-  articleId: number;
+  articleSlug: string;
 };
 
-const ArticleCommentsSection: FC<Props> = ({ className, articleId }) => {
+const ArticleCommentsSection: FC<Props> = ({ className, articleSlug }) => {
   const router = useRouter();
   const { currentUser } = useAuth();
   const trpcUtils = trpc.useUtils();
 
   const { data: comments } =
-    trpc.comment.getCommentsByArticleId.useQuery(articleId);
+    trpc.comment.getCommentsByArticleSlug.useQuery(articleSlug);
 
   const { handleSubmit, reset, register, getValues } = useForm<{
     commentBody: string;
@@ -33,7 +33,7 @@ const ArticleCommentsSection: FC<Props> = ({ className, articleId }) => {
   const { mutate: createComment, isLoading: isCreatingComment } =
     trpc.comment.create.useMutation({
       onSuccess: () => {
-        trpcUtils.comment.getCommentsByArticleId.invalidate();
+        trpcUtils.comment.getCommentsByArticleSlug.invalidate();
         reset();
       },
       onError: () => toast('Something went wrong', { type: 'error' }),
@@ -42,7 +42,7 @@ const ArticleCommentsSection: FC<Props> = ({ className, articleId }) => {
   const onSubmit = () => {
     const { commentBody } = getValues();
     if (!commentBody) return;
-    createComment({ articleId, commentBody });
+    createComment({ articleSlug, commentBody });
   };
 
   return (
@@ -108,7 +108,7 @@ const ArticleCommentsSection: FC<Props> = ({ className, articleId }) => {
 export default ArticleCommentsSection;
 
 type CommentsListItemProps = {
-  comment: RouterOutputs['comment']['getCommentsByArticleId'][number];
+  comment: RouterOutputs['comment']['getCommentsByArticleSlug'][number];
 };
 
 const CommentsListItem: FC<CommentsListItemProps> = ({ comment }) => {
@@ -118,7 +118,7 @@ const CommentsListItem: FC<CommentsListItemProps> = ({ comment }) => {
 
   const { mutate: deleteCommentById, isLoading: isDeleting } =
     trpc.comment.deleteById.useMutation({
-      onSuccess: () => trpcUtils.comment.getCommentsByArticleId.invalidate(),
+      onSuccess: () => trpcUtils.comment.getCommentsByArticleSlug.invalidate(),
       onError: () => toast('Something went wrong', { type: 'error' }),
     });
 
@@ -155,7 +155,7 @@ const CommentsListItem: FC<CommentsListItemProps> = ({ comment }) => {
             {dayjs(comment.createdAt).format('MMMM D, YYYY')}
           </p>
         </div>
-        {currentUser?.id === comment.authorId && (
+        {currentUser?.id === comment.author.id && (
           <button disabled={isDeleting} onClick={onDelete}>
             <TrashIcon
               className={`h-3 ${
