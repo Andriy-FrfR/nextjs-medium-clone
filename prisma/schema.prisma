@@ -20,8 +20,6 @@ model User {
   following         User[]           @relation("UserFollows")
   favoritedArticles Article[]        @relation("FavoritedArticles")
   articleComments   ArticleComment[]
-
-  @@map("users")
 }
 
 model Article {
@@ -38,7 +36,6 @@ model Article {
   favoritedBy User[]           @relation("FavoritedArticles")
 
   @@index([authorId])
-  @@map("articles")
 }
 
 model ArticleComment {

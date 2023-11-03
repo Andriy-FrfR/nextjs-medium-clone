@@ -70,9 +70,9 @@ const ProfilePageLayout: FC<Props> = ({ user }) => {
           )}
         </div>
       </div>
-      <div className="mx-auto mb-2 mt-6 max-w-[950px] px-5">
+      <div className="mx-auto mt-6 max-w-[950px] px-5">
         <Link
-          className={`relative px-4 py-2 ${
+          className={`inline-block px-4 py-2 ${
             `/@${user.username}` === router.asPath
               ? 'border-b-2 border-green-550 text-green-550'
               : 'text-[#AAAAAA]'
@@ -82,7 +82,7 @@ const ProfilePageLayout: FC<Props> = ({ user }) => {
           My Articles
         </Link>
         <Link
-          className={`relative px-4 py-2 ${
+          className={`inline-block px-4 py-2 ${
             `/@${user.username}/favorites` === router.asPath
               ? 'border-b-2 border-green-550 text-green-550'
               : 'text-[#AAAAAA]'
@@ -91,6 +91,7 @@ const ProfilePageLayout: FC<Props> = ({ user }) => {
         >
           Favorited Articles
         </Link>
+        <div className="mt-[-1.5px] border-b border-black border-opacity-10" />
       </div>
     </>
   );

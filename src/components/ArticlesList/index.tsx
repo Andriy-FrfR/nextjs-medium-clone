@@ -37,7 +37,10 @@ const ListItem: FC<ListItemProps> = ({ article }) => {
     mutate: changeFavoritedStatus,
     isLoading: isChangingFavoritedStatus,
   } = trpc.article.changeArticleFavoritedStatus.useMutation({
-    onSuccess: () => trpcUtils.article.getArticles.invalidate(),
+    onSuccess: () => {
+      trpcUtils.article.getArticles.invalidate();
+      trpcUtils.article.getUserFeed.invalidate();
+    },
     onError: () => toast('Something went wrong', { type: 'error' }),
   });
 
@@ -47,7 +50,7 @@ const ListItem: FC<ListItemProps> = ({ article }) => {
 
   return (
     <li
-      className="border-t border-black border-opacity-10 py-6"
+      className="border-t border-black border-opacity-10 py-6 first:border-none"
       key={article.id}
     >
       <div className="flex justify-between">

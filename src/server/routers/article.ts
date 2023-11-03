@@ -205,6 +205,9 @@ export const articleRouter = router({
           },
         },
         favoritedBy: { where: { id: ctx.userId }, include: { _count: true } },
+        _count: {
+          select: { favoritedBy: true },
+        },
       },
     });
 
