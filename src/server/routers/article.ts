@@ -140,7 +140,9 @@ export const articleRouter = router({
               username: true,
               image: true,
               bio: true,
-              followedBy: { where: { id: ctx.userId } },
+              followedBy: ctx.userId
+                ? { where: { id: ctx.userId } }
+                : undefined,
             },
           },
           favoritedBy: ctx.userId ? { where: { id: ctx.userId } } : undefined,
@@ -169,7 +171,7 @@ export const articleRouter = router({
           username: article.author.username,
           image: article.author.image,
           bio: article.author.bio,
-          isFollowing: Boolean(article.author.followedBy[0]),
+          isFollowing: Boolean(article.author.followedBy?.[0]),
         },
       };
     }),
@@ -200,7 +202,9 @@ export const articleRouter = router({
               username: true,
               image: true,
               bio: true,
-              followedBy: { where: { id: ctx.userId } },
+              followedBy: ctx.userId
+                ? { where: { id: ctx.userId } }
+                : undefined,
             },
           },
           favoritedBy: ctx.userId ? { where: { id: ctx.userId } } : undefined,
@@ -224,7 +228,7 @@ export const articleRouter = router({
           username: article.author.username,
           image: article.author.image,
           bio: article.author.bio,
-          isFollowing: Boolean(article.author.followedBy[0]),
+          isFollowing: Boolean(article.author.followedBy?.[0]),
         },
       }));
     }),
@@ -247,7 +251,7 @@ export const articleRouter = router({
             username: true,
             image: true,
             bio: true,
-            followedBy: { where: { id: ctx.userId } },
+            followedBy: ctx.userId ? { where: { id: ctx.userId } } : undefined,
           },
         },
         favoritedBy: ctx.userId ? { where: { id: ctx.userId } } : undefined,
@@ -271,7 +275,7 @@ export const articleRouter = router({
         username: article.author.username,
         image: article.author.image,
         bio: article.author.bio,
-        isFollowing: Boolean(article.author.followedBy[0]),
+        isFollowing: Boolean(article.author.followedBy?.[0]),
       },
     }));
   }),
