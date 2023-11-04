@@ -212,6 +212,7 @@ export const articleRouter = router({
             select: { favoritedBy: true },
           },
         },
+        orderBy: { createdAt: 'desc' },
       });
 
       return articles.map((article) => ({
@@ -259,6 +260,7 @@ export const articleRouter = router({
           select: { favoritedBy: true },
         },
       },
+      orderBy: { createdAt: 'desc' },
     });
 
     return articles.map((article) => ({
