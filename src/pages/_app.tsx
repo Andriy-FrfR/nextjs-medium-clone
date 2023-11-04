@@ -1,3 +1,4 @@
+import { FC, ReactElement, ReactNode } from 'react';
 import type { AppProps } from 'next/app';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer as ToastContainerBase } from 'react-toastify';
@@ -6,12 +7,23 @@ import '~/styles/globals.css';
 import { trpc } from '~/utils/trpc';
 import AuthProvider from '~/contexts/auth';
 import PageLayout from '~/components/PageLayout';
+import { NextPage } from 'next';
 
-const App = ({ Component, pageProps }: AppProps) => {
+export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+  getLayout?: (page: ReactElement) => ReactNode;
+};
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout;
+};
+
+const App = ({ Component, pageProps }: AppPropsWithLayout) => {
+  const getLayout = Component.getLayout || ((page) => page);
+
   return (
     <AuthProvider>
       <PageLayout>
-        <Component {...pageProps} />
+        {getLayout(<Component {...pageProps} />)}
         <ToastContainer />
       </PageLayout>
     </AuthProvider>

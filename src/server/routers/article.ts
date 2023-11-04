@@ -143,7 +143,7 @@ export const articleRouter = router({
               followedBy: { where: { id: ctx.userId } },
             },
           },
-          favoritedBy: { where: { id: ctx.userId } },
+          favoritedBy: ctx.userId ? { where: { id: ctx.userId } } : undefined,
           _count: { select: { favoritedBy: true } },
         },
       });
@@ -162,7 +162,7 @@ export const articleRouter = router({
         body: article.body,
         tags: article.tags.map((tag) => tag.name),
         createdAt: article.createdAt,
-        isFavorited: Boolean(article.favoritedBy[0]),
+        isFavorited: Boolean(article.favoritedBy?.[0]),
         favoritesCount: article._count.favoritedBy,
         author: {
           id: article.author.id,
@@ -187,8 +187,10 @@ export const articleRouter = router({
       const articles = await ctx.prisma.article.findMany({
         where: {
           authorId: input?.authorId,
-          favoritedBy: { some: { id: input?.favoritedByUserId } },
-          tags: { some: { name: input?.tag } },
+          favoritedBy: input?.favoritedByUserId
+            ? { some: { id: input?.favoritedByUserId } }
+            : undefined,
+          tags: input?.tag ? { some: { name: input?.tag } } : undefined,
         },
         include: {
           tags: true,
@@ -201,7 +203,7 @@ export const articleRouter = router({
               followedBy: { where: { id: ctx.userId } },
             },
           },
-          favoritedBy: { where: { id: ctx.userId } },
+          favoritedBy: ctx.userId ? { where: { id: ctx.userId } } : undefined,
           _count: {
             select: { favoritedBy: true },
           },
@@ -215,7 +217,7 @@ export const articleRouter = router({
         body: article.body,
         tags: article.tags.map((tag) => tag.name),
         createdAt: article.createdAt,
-        isFavorited: Boolean(article.favoritedBy[0]),
+        isFavorited: Boolean(article.favoritedBy?.[0]),
         favoritesCount: article._count.favoritedBy,
         author: {
           id: article.author.id,
@@ -248,7 +250,7 @@ export const articleRouter = router({
             followedBy: { where: { id: ctx.userId } },
           },
         },
-        favoritedBy: { where: { id: ctx.userId } },
+        favoritedBy: ctx.userId ? { where: { id: ctx.userId } } : undefined,
         _count: {
           select: { favoritedBy: true },
         },
@@ -262,7 +264,7 @@ export const articleRouter = router({
       body: article.body,
       tags: article.tags.map((tag) => tag.name),
       createdAt: article.createdAt,
-      isFavorited: Boolean(article.favoritedBy[0]),
+      isFavorited: Boolean(article.favoritedBy?.[0]),
       favoritesCount: article._count.favoritedBy,
       author: {
         id: article.author.id,

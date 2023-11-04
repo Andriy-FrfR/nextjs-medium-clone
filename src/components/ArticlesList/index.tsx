@@ -3,23 +3,31 @@ import dayjs from 'dayjs';
 import { FC } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
+import { useRouter } from 'next/router';
 
 import Button from '~/components/Button';
+import { useAuth } from '~/contexts/auth';
 import HeartIcon from '~/assets/svg/heart.svg';
 import { RouterOutputs, trpc } from '~/utils/trpc';
 import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.jpeg';
 
 type Props = {
-  articles: RouterOutputs['article']['listArticles'];
+  articles?: RouterOutputs['article']['listArticles'];
   className?: string;
+  isLoading?: boolean;
 };
 
-const ArticlesList: FC<Props> = ({ articles, className }) => {
+const ArticlesList: FC<Props> = ({ articles, className, isLoading }) => {
   return (
     <ul className={`flex flex-col ${className}`}>
-      {articles.map((article) => (
-        <ListItem key={article.slug} article={article} />
-      ))}
+      {isLoading && <p className="mt-4">Loading articles...</p>}
+      {!isLoading && articles?.length === 0 && (
+        <p className="mt-4">No articles are here... yet.</p>
+      )}
+      {!isLoading &&
+        articles?.map((article) => (
+          <ListItem key={article.slug} article={article} />
+        ))}
     </ul>
   );
 };
@@ -31,6 +39,8 @@ type ListItemProps = {
 };
 
 const ListItem: FC<ListItemProps> = ({ article }) => {
+  const router = useRouter();
+  const { currentUser } = useAuth();
   const trpcUtils = trpc.useUtils();
 
   const {
@@ -45,6 +55,10 @@ const ListItem: FC<ListItemProps> = ({ article }) => {
   });
 
   const handleChangeFavoritedStatus = () => {
+    if (!currentUser) {
+      return router.push(`/register?navigateTo=${router.asPath}`);
+    }
+
     changeFavoritedStatus(article.slug);
   };
 

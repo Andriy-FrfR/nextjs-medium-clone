@@ -194,7 +194,7 @@ export const userRouter = router({
       select: { id: true, username: true, email: true, bio: true, image: true },
     });
   }),
-  getUserByUsername: publicProcedure
+  getByUsername: publicProcedure
     .input(z.string())
     .query(async ({ ctx, input: username }) => {
       const user = await ctx.prisma.user.findUnique({
@@ -204,7 +204,7 @@ export const userRouter = router({
           image: true,
           username: true,
           bio: true,
-          followedBy: { where: { id: ctx.userId } },
+          followedBy: ctx.userId ? { where: { id: ctx.userId } } : undefined,
         },
       });
 
@@ -220,7 +220,7 @@ export const userRouter = router({
         username: user.username,
         image: user.image,
         bio: user.bio,
-        isFollowing: Boolean(user?.followedBy[0]),
+        isFollowing: Boolean(user.followedBy?.[0]),
       };
     }),
   changeFollowingStatus: privateProcedure

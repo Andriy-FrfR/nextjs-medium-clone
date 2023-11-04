@@ -28,34 +28,35 @@ export default function SettingsPage() {
 
   const trpcUtils = trpc.useUtils();
 
-  const { isLoading, mutate } = trpc.user.update.useMutation({
-    onSuccess: async () => {
-      trpcUtils.user.getCurrentUser.invalidate();
-      router.push(`/@${currentUser?.username}`);
-    },
-    onError: (e) => {
-      if (
-        e.message === 'email must be unique' ||
-        e.message === 'username must be unique'
-      ) {
-        setErrorMessages([e.message]);
-        return;
-      }
+  const { isLoading: isUpdatingUser, mutate: updateUser } =
+    trpc.user.update.useMutation({
+      onSuccess: async () => {
+        trpcUtils.user.getCurrentUser.invalidate();
+        router.push(`/@${currentUser?.username}`);
+      },
+      onError: (e) => {
+        if (
+          e.message === 'email must be unique' ||
+          e.message === 'username must be unique'
+        ) {
+          setErrorMessages([e.message]);
+          return;
+        }
 
-      if (e.data?.zodError) {
-        const errors = JSON.parse(e.message) as Error[];
-        const errorMessages = errors.map((error) => error.message);
-        setErrorMessages(errorMessages);
-        return;
-      }
+        if (e.data?.zodError) {
+          const errors = JSON.parse(e.message) as Error[];
+          const errorMessages = errors.map((error) => error.message);
+          setErrorMessages(errorMessages);
+          return;
+        }
 
-      toast('Something went wrong', { type: 'error' });
-    },
-  });
+        toast('Something went wrong', { type: 'error' });
+      },
+    });
 
   const onSubmit = () => {
     const values = getValues();
-    mutate(values);
+    updateUser(values);
   };
 
   const onLogout = async () => {
@@ -85,8 +86,8 @@ export default function SettingsPage() {
             className="mb-4"
             placeholder="Url of profile picture"
             type="text"
-            disabled={isLoading}
-            variantProps={{ disabled: isLoading, size: 'sm' }}
+            disabled={isUpdatingUser}
+            variantProps={{ disabled: isUpdatingUser, size: 'sm' }}
           />
           <Input
             {...register('username')}
@@ -94,8 +95,8 @@ export default function SettingsPage() {
             className="mb-4"
             placeholder="Username"
             type="text"
-            disabled={isLoading}
-            variantProps={{ disabled: isLoading }}
+            disabled={isUpdatingUser}
+            variantProps={{ disabled: isUpdatingUser }}
           />
           <Textarea
             {...register('bio')}
@@ -103,8 +104,8 @@ export default function SettingsPage() {
             className="mb-4"
             placeholder="Short bio about you"
             rows={8}
-            disabled={isLoading}
-            variantProps={{ disabled: isLoading }}
+            disabled={isUpdatingUser}
+            variantProps={{ disabled: isUpdatingUser }}
           />
           <Input
             {...register('email')}
@@ -112,22 +113,22 @@ export default function SettingsPage() {
             className="mb-4"
             placeholder="Email"
             type="email"
-            disabled={isLoading}
-            variantProps={{ disabled: isLoading }}
+            disabled={isUpdatingUser}
+            variantProps={{ disabled: isUpdatingUser }}
           />
           <Input
             {...register('password')}
             className="mb-4"
             placeholder="New Password"
             type="password"
-            disabled={isLoading}
-            variantProps={{ disabled: isLoading }}
+            disabled={isUpdatingUser}
+            variantProps={{ disabled: isUpdatingUser }}
           />
           <Button
             type="submit"
             className="self-end"
-            disabled={isLoading}
-            variantProps={{ disabled: isLoading }}
+            disabled={isUpdatingUser}
+            variantProps={{ disabled: isUpdatingUser }}
           >
             Update Settings
           </Button>
@@ -135,11 +136,11 @@ export default function SettingsPage() {
         <div className="my-4 border-t border-gray-300" />
         <Button
           onClick={onLogout}
-          disabled={isLoading}
+          disabled={isUpdatingUser}
           variantProps={{
             variant: 'danger-outline-1',
             size: 'md',
-            disabled: isLoading,
+            disabled: isUpdatingUser,
           }}
         >
           Or click here to logout.

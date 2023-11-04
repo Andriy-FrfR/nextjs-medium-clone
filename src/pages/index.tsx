@@ -21,15 +21,31 @@ export default function HomePage() {
     }
   }, [currentUser]);
 
-  const { data: popularTags } = trpc.tag.getPopularTags.useQuery();
+  const { data: popularTags, isLoading: isFetchingTags } =
+    trpc.tag.getPopularTags.useQuery();
 
-  const { data: globalFeed, refetch: refetchGlobalFeed } =
-    trpc.article.listArticles.useQuery({
+  const {
+    data: globalFeed,
+    refetch: refetchGlobalFeed,
+    isLoading: isGlobalFeedLoading,
+    isRefetching: isGlobalFeedRefetching,
+  } = trpc.article.listArticles.useQuery(
+    {
       tag: activeTag,
-    });
+    },
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
 
-  const { data: userFeed, refetch: refetchUserFeed } =
-    trpc.article.getUserFeed.useQuery();
+  const {
+    data: userFeed,
+    refetch: refetchUserFeed,
+    isLoading: isUserFeedLoading,
+    isRefetching: isUserFeedRefetching,
+  } = trpc.article.getUserFeed.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
 
   const onTagClick = (tag: string) => {
     setActiveTag(tag);
@@ -49,6 +65,11 @@ export default function HomePage() {
   };
 
   const articles = activeFeed === 'user' ? userFeed : globalFeed;
+
+  const isFetchingArticles =
+    activeFeed === 'user'
+      ? isUserFeedLoading || isUserFeedRefetching
+      : isGlobalFeedLoading || isGlobalFeedRefetching;
 
   return (
     <>
@@ -97,13 +118,19 @@ export default function HomePage() {
             )}
             <div className="mt-[-1.5px] border-b border-black border-opacity-10" />
           </div>
-          {articles && (
-            <ArticlesList className="mt-[-1px] grow" articles={articles} />
-          )}
+          <ArticlesList
+            isLoading={isFetchingArticles}
+            className="mt-[-1px] grow"
+            articles={articles}
+          />
         </div>
         <div className="ml-8 w-full max-w-[255px] self-start rounded bg-[#F3F3F3] px-[10px] pb-[10px] pt-[5px]">
           <p>Popular Tags</p>
-          {popularTags && (
+          {isFetchingTags && <p className="mt-1">Loading tags...</p>}
+          {!isFetchingTags && popularTags?.length === 0 && (
+            <p className="mt-1">There are no tags used yet.</p>
+          )}
+          {!isFetchingTags && popularTags && popularTags.length !== 0 && (
             <ul className="mt-1 flex flex-wrap gap-[2px]">
               {popularTags.map((tag) => (
                 <li
