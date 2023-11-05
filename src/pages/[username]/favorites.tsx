@@ -12,7 +12,7 @@ export async function getServerSideProps(
   context: GetServerSidePropsContext<{ username: string }>,
 ) {
   const trpcHelpers = await createServerSideTRPCHelpers(context);
-  const username = (context.params?.username as string).slice(1); // remove @ from username param
+  const username = context.params?.username.slice(1) as string; // remove @ from username param
 
   try {
     const user = await trpcHelpers.user.getByUsername.fetch(username);

@@ -14,7 +14,7 @@ export async function getServerSideProps(
   context: GetServerSidePropsContext<{ slug: string[] }>,
 ) {
   const trpcHelpers = await createServerSideTRPCHelpers(context);
-  const slug = (context.params?.slug as string[]).join('/');
+  const slug = context.params?.slug!.join('/') as string;
 
   const [currentUser, article] = await Promise.allSettled([
     trpcHelpers.user.getCurrentUser.fetch(),
