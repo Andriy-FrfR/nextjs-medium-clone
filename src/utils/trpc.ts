@@ -1,13 +1,15 @@
-import Cookies from 'js-cookie';
 import superjson from 'superjson';
 import { createTRPCNext } from '@trpc/next';
+import { httpBatchLink } from '@trpc/client';
+import { GetServerSidePropsContext } from 'next';
 import { inferRouterOutputs } from '@trpc/server';
-import { HTTPHeaders, httpBatchLink } from '@trpc/client';
+import { createServerSideHelpers } from '@trpc/react-query/server';
+import { CreateNextContextOptions } from '@trpc/server/adapters/next';
 
-import { AppRouter } from '~/server/routers/_app';
+import { createContext } from '~/server/context';
+import { AppRouter, appRouter } from '~/server/routers/_app';
 
 const getBaseUrl = () => {
-  if (typeof window !== 'undefined') return '';
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   if (process.env.RENDER_INTERNAL_HOSTNAME)
     return `http://${process.env.RENDER_INTERNAL_HOSTNAME}:${process.env.PORT}`;
@@ -15,24 +17,41 @@ const getBaseUrl = () => {
 };
 
 export const trpc = createTRPCNext<AppRouter>({
-  config() {
+  config({ ctx }) {
+    if (typeof window !== 'undefined') {
+      return {
+        transformer: superjson,
+        links: [
+          httpBatchLink({
+            url: '/api/trpc',
+          }),
+        ],
+        queryClientConfig: {
+          defaultOptions: {
+            queries: { retry: false, refetchOnWindowFocus: false },
+          },
+        },
+      };
+    }
+
     return {
+      transformer: superjson,
       links: [
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
           headers() {
-            const headers: HTTPHeaders = {};
-            const accessToken = Cookies.get('accessToken');
+            if (ctx?.req) {
+              const { connection: _connection, ...headers } = ctx.req.headers;
 
-            if (accessToken) {
-              headers['Authorization'] = `Bearer ${accessToken}`;
+              return {
+                ...headers,
+                'x-ssr': '1',
+              };
             }
-
-            return headers;
+            return {};
           },
         }),
       ],
-      transformer: superjson,
     };
   },
   ssr: false,

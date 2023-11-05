@@ -3,12 +3,34 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
+import { GetServerSidePropsContext } from 'next';
 
 import { trpc } from '~/utils/trpc';
 import Input from '~/components/Input';
 import Button from '~/components/Button';
 import Textarea from '~/components/Textarea';
 import ValidationErrors from '~/components/ValidationErrors';
+import { createServerSideTRPCHelpers } from '~/utils/trpc-ssr-helpers';
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const trpcHelpers = await createServerSideTRPCHelpers(context);
+
+  try {
+    await trpcHelpers.user.getCurrentUser.fetch();
+    return {
+      props: {
+        trpcState: trpcHelpers.dehydrate(),
+      },
+    };
+  } catch {
+    return {
+      redirect: {
+        destination: '/login?navigateTo=/editor',
+        permanent: false,
+      },
+    };
+  }
+}
 
 export default function CreateArticlePage() {
   const router = useRouter();

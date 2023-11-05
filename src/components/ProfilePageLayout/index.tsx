@@ -1,12 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
-import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 
 import { trpc } from '~/utils/trpc';
 import Button from '~/components/Button';
-import { useAuth } from '~/contexts/auth';
 import GearIcon from '~/assets/svg/gear.svg';
 import PlusIcon from '~/assets/svg/plus.svg';
 import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.jpeg';
@@ -15,23 +13,16 @@ const ProfilePageLayout = () => {
   const router = useRouter();
   const username = (router.query.username as string).slice(1); // remove @ from username param
 
-  const { data: user, isLoading: isFetchingUser } =
-    trpc.user.getByUsername.useQuery(username);
-
-  const { currentUser } = useAuth();
   const trpcUtils = trpc.useUtils();
+
+  const { data: currentUser } = trpc.user.getCurrentUser.useQuery();
+  const { data: user } = trpc.user.getByUsername.useQuery(username);
 
   const { mutate: changeFollowStatus, isLoading: isChangingFollowStatus } =
     trpc.user.changeFollowingStatus.useMutation({
       onSuccess: () => trpcUtils.user.getByUsername.invalidate(),
       onError: () => toast('Something went wrong', { type: 'error' }),
     });
-
-  useEffect(() => {
-    if (isFetchingUser || user) return;
-
-    router.push('/');
-  }, [isFetchingUser, router, user]);
 
   const onChangeFollowStatus = () => {
     if (!user) return;

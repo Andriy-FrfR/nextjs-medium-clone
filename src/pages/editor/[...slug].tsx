@@ -1,23 +1,61 @@
 import Head from 'next/head';
-import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 
 import { trpc } from '~/utils/trpc';
 import Input from '~/components/Input';
 import Button from '~/components/Button';
-import { useAuth } from '~/contexts/auth';
 import Textarea from '~/components/Textarea';
+import { createServerSideTRPCHelpers } from '~/utils/trpc-ssr-helpers';
 
-export default function CreateArticlePage() {
+export async function getServerSideProps(
+  context: GetServerSidePropsContext<{ slug: string[] }>,
+) {
+  const trpcHelpers = await createServerSideTRPCHelpers(context);
+  const slug = (context.params?.slug as string[]).join('/');
+
+  const [currentUser, article] = await Promise.allSettled([
+    trpcHelpers.user.getCurrentUser.fetch(),
+    trpcHelpers.article.getBySlug.fetch(slug),
+  ]);
+
+  if (currentUser.status === 'rejected') {
+    return {
+      redirect: {
+        destination: `/login?navigateTo=/editor/${slug}`,
+        permanent: false,
+      },
+    };
+  }
+
+  if (
+    article.status === 'rejected' ||
+    currentUser.value.id !== article.value.author.id
+  ) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {
+      slug,
+      trpcState: trpcHelpers.dehydrate(),
+    },
+  };
+}
+
+export default function CreateArticlePage(
+  props: InferGetServerSidePropsType<typeof getServerSideProps>,
+) {
   const router = useRouter();
-  const articleSlug = (router.query.slug as string[]).join('/');
 
-  const { currentUser } = useAuth();
-
-  const { data: article, isLoading: isFetchingArticle } =
-    trpc.article.getBySlug.useQuery(articleSlug);
+  const { data: article } = trpc.article.getBySlug.useQuery(props.slug);
 
   const { mutate: updateArticle, isLoading } = trpc.article.update.useMutation({
     onSuccess: (updatedArticleSlug) =>
@@ -30,7 +68,14 @@ export default function CreateArticlePage() {
     description: string;
     body: string;
     tags: string;
-  }>();
+  }>({
+    defaultValues: {
+      title: article?.title,
+      description: article?.description,
+      body: article?.body,
+      tags: article?.tags.join(', '),
+    },
+  });
 
   const onSubmit = () => {
     if (!article) return;
@@ -39,17 +84,6 @@ export default function CreateArticlePage() {
     const tags = values.tags.split(', ').filter((tag) => Boolean(tag.trim()));
     updateArticle({ slug: article?.slug, ...values, tags });
   };
-
-  useEffect(() => {
-    if (isFetchingArticle) return;
-
-    // If user is not author of the article, navigate to home page
-    if (article?.author.id !== currentUser?.id) {
-      router.replace('/');
-    }
-  }, [article?.author, currentUser?.id, isFetchingArticle, router]);
-
-  if (article?.author.id !== currentUser?.id || isFetchingArticle) return null;
 
   return (
     <>
@@ -64,7 +98,6 @@ export default function CreateArticlePage() {
         >
           <Input
             {...register('title')}
-            defaultValue={article?.title}
             className="mb-4"
             placeholder="Article Title"
             type="text"
@@ -73,7 +106,6 @@ export default function CreateArticlePage() {
           />
           <Input
             {...register('description')}
-            defaultValue={article?.description}
             className="mb-4"
             placeholder="What's this article about?"
             type="text"
@@ -82,7 +114,6 @@ export default function CreateArticlePage() {
           />
           <Textarea
             {...register('body')}
-            defaultValue={article?.body}
             className="mb-4"
             placeholder="Write your article"
             rows={8}
@@ -91,7 +122,6 @@ export default function CreateArticlePage() {
           />
           <Input
             {...register('tags')}
-            defaultValue={article?.tags.join(', ')}
             className="mb-4"
             placeholder="Enter tags (separate tags with ',  ')"
             type="text"

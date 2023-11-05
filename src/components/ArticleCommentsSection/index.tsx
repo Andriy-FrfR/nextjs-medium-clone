@@ -6,11 +6,10 @@ import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 
-import { RouterOutputs, trpc } from '~/utils/trpc';
 import Button from '~/components/Button';
-import { useAuth } from '~/contexts/auth';
 import Textarea from '~/components/Textarea';
 import TrashIcon from '~/assets/svg/trash.svg';
+import { RouterOutputs, trpc } from '~/utils/trpc';
 import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.jpeg';
 
 type Props = {
@@ -20,8 +19,9 @@ type Props = {
 
 const ArticleCommentsSection: FC<Props> = ({ className, articleSlug }) => {
   const router = useRouter();
-  const { currentUser } = useAuth();
   const trpcUtils = trpc.useUtils();
+
+  const { data: currentUser } = trpc.user.getCurrentUser.useQuery();
 
   const { data: comments } =
     trpc.comment.getCommentsByArticleSlug.useQuery(articleSlug);
@@ -112,7 +112,7 @@ type CommentsListItemProps = {
 };
 
 const CommentsListItem: FC<CommentsListItemProps> = ({ comment }) => {
-  const { currentUser } = useAuth();
+  const { data: currentUser } = trpc.user.getCurrentUser.useQuery();
 
   const trpcUtils = trpc.useUtils();
 

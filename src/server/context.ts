@@ -4,13 +4,14 @@ import { inferAsyncReturnType } from '@trpc/server';
 import { CreateNextContextOptions } from '@trpc/server/adapters/next';
 
 import { prisma } from './prisma';
+import { GetServerSidePropsContext } from 'next';
 
-export const createContext = async (opts: CreateNextContextOptions) => {
+export const createContext = async (
+  opts: CreateNextContextOptions | GetServerSidePropsContext,
+) => {
   const context: { prisma: PrismaClient; userId?: number } = { prisma };
 
-  const accessToken = opts.req.headers.authorization
-    ? opts.req.headers.authorization.split('Bearer ')[1]
-    : '';
+  const accessToken = opts.req.cookies['accessToken'];
 
   if (!accessToken) {
     return context;

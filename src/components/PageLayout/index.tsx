@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { FC, ReactNode } from 'react';
 import { Source_Sans_3, Titillium_Web } from 'next/font/google';
 
-import { useAuth } from '~/contexts/auth';
+import { trpc } from '~/utils/trpc';
 import GearIcon from '~/assets/svg/gear.svg';
 import PenToSquareIcon from '~/assets/svg/pen-to-square.svg';
 import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.jpeg';
@@ -40,7 +40,7 @@ export default PageLayout;
 
 const Header = () => {
   const router = useRouter();
-  const { currentUser } = useAuth();
+  const { data: currentUser } = trpc.user.getCurrentUser.useQuery();
 
   const routes = currentUser
     ? [

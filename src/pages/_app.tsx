@@ -1,13 +1,14 @@
-import { FC, ReactElement, ReactNode } from 'react';
+import { NextPage } from 'next';
 import type { AppProps } from 'next/app';
 import 'react-toastify/dist/ReactToastify.css';
+import NextNProgress from 'nextjs-progressbar';
+import { ReactElement, ReactNode } from 'react';
 import { ToastContainer as ToastContainerBase } from 'react-toastify';
 
 import '~/styles/globals.css';
 import { trpc } from '~/utils/trpc';
-import AuthProvider from '~/contexts/auth';
 import PageLayout from '~/components/PageLayout';
-import { NextPage } from 'next';
+import { getPageLoadingProgressbarCSS } from '~/styles/get-page-loading-progressbar-css';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -21,12 +22,18 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
   const getLayout = Component.getLayout || ((page) => page);
 
   return (
-    <AuthProvider>
-      <PageLayout>
-        {getLayout(<Component {...pageProps} />)}
-        <ToastContainer />
-      </PageLayout>
-    </AuthProvider>
+    <>
+      <PageLayout>{getLayout(<Component {...pageProps} />)}</PageLayout>
+      <ToastContainer />
+      <NextNProgress
+        options={{
+          showSpinner: false,
+        }}
+        transformCSS={(defaultCSS) => (
+          <style>{getPageLoadingProgressbarCSS(defaultCSS)}</style>
+        )}
+      />
+    </>
   );
 };
 

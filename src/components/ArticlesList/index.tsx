@@ -6,7 +6,6 @@ import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 
 import Button from '~/components/Button';
-import { useAuth } from '~/contexts/auth';
 import HeartIcon from '~/assets/svg/heart.svg';
 import { RouterOutputs, trpc } from '~/utils/trpc';
 import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.jpeg';
@@ -40,8 +39,9 @@ type ListItemProps = {
 
 const ListItem: FC<ListItemProps> = ({ article }) => {
   const router = useRouter();
-  const { currentUser } = useAuth();
   const trpcUtils = trpc.useUtils();
+
+  const { data: currentUser } = trpc.user.getCurrentUser.useQuery();
 
   const {
     mutate: changeFavoritedStatus,

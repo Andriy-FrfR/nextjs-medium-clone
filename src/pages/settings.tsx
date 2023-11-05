@@ -4,17 +4,38 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
+import { GetServerSidePropsContext } from 'next';
 
 import { trpc } from '~/utils/trpc';
 import Input from '~/components/Input';
 import Button from '~/components/Button';
-import { useAuth } from '~/contexts/auth';
 import Textarea from '~/components/Textarea';
 import ValidationErrors from '~/components/ValidationErrors';
+import { createServerSideTRPCHelpers } from '~/utils/trpc-ssr-helpers';
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const trpcHelpers = await createServerSideTRPCHelpers(context);
+
+  try {
+    await trpcHelpers.user.getCurrentUser.fetch();
+    return {
+      props: {
+        trpcState: trpcHelpers.dehydrate(),
+      },
+    };
+  } catch (e) {
+    return {
+      redirect: {
+        destination: '/login?navigateTo=/settings',
+        permanent: false,
+      },
+    };
+  }
+}
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { currentUser } = useAuth();
+  const { data: currentUser } = trpc.user.getCurrentUser.useQuery();
 
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
@@ -24,7 +45,14 @@ export default function SettingsPage() {
     username: string;
     email: string;
     password: string;
-  }>();
+  }>({
+    defaultValues: {
+      image: currentUser?.image || undefined,
+      bio: currentUser?.bio || undefined,
+      username: currentUser?.username,
+      email: currentUser?.email,
+    },
+  });
 
   const trpcUtils = trpc.useUtils();
 
@@ -61,8 +89,8 @@ export default function SettingsPage() {
 
   const onLogout = async () => {
     Cookies.remove('accessToken');
-    await router.replace('/');
-    trpcUtils.user.getCurrentUser.reset();
+    await trpcUtils.user.getCurrentUser.reset();
+    router.replace('/');
   };
 
   return (
@@ -82,7 +110,6 @@ export default function SettingsPage() {
         >
           <Input
             {...register('image')}
-            defaultValue={currentUser?.image || undefined} // Workaround to pass not null check
             className="mb-4"
             placeholder="Url of profile picture"
             type="text"
@@ -91,7 +118,6 @@ export default function SettingsPage() {
           />
           <Input
             {...register('username')}
-            defaultValue={currentUser?.username}
             className="mb-4"
             placeholder="Username"
             type="text"
@@ -100,7 +126,6 @@ export default function SettingsPage() {
           />
           <Textarea
             {...register('bio')}
-            defaultValue={currentUser?.bio || undefined}
             className="mb-4"
             placeholder="Short bio about you"
             rows={8}
@@ -109,7 +134,6 @@ export default function SettingsPage() {
           />
           <Input
             {...register('email')}
-            defaultValue={currentUser?.email}
             className="mb-4"
             placeholder="Email"
             type="email"

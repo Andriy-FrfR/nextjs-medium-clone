@@ -5,12 +5,14 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
+import { GetServerSidePropsContext } from 'next';
 import { useSearchParams } from 'next/navigation';
 
 import { trpc } from '~/utils/trpc';
 import Input from '~/components/Input';
 import Button from '~/components/Button';
 import ValidationErrors from '~/components/ValidationErrors';
+import { createServerSideTRPCHelpers } from '~/utils/trpc-ssr-helpers';
 
 type InputName = 'username' | 'email' | 'password';
 
@@ -31,6 +33,12 @@ const INPUTS: { placeholder: string; type: string; name: InputName }[] = [
     name: 'password',
   },
 ];
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const trpcHelpers = await createServerSideTRPCHelpers(context);
+  await trpcHelpers.user.getCurrentUser.prefetch();
+  return { props: { trpcState: trpcHelpers.dehydrate() } };
+}
 
 export default function RegisterPage() {
   const router = useRouter();

@@ -1,23 +1,49 @@
 import Head from 'next/head';
 import { ReactElement } from 'react';
-import { useRouter } from 'next/router';
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 
 import { trpc } from '~/utils/trpc';
 import { NextPageWithLayout } from '~/pages/_app';
 import ArticlesList from '~/components/ArticlesList';
 import ProfilePageLayout from '~/components/ProfilePageLayout';
+import { createServerSideTRPCHelpers } from '~/utils/trpc-ssr-helpers';
 
-const ProfilePage: NextPageWithLayout = () => {
-  const router = useRouter();
-  const username = (router.query.username as string).slice(1); // remove @ from username param
+export async function getServerSideProps(
+  context: GetServerSidePropsContext<{ username: string }>,
+) {
+  const trpcHelpers = await createServerSideTRPCHelpers(context);
+  const username = (context.params?.username as string).slice(1); // remove @ from username param
 
-  const { data: user } = trpc.user.getByUsername.useQuery(username);
+  try {
+    const user = await trpcHelpers.user.getByUsername.fetch(username);
 
-  const {
-    data: articles,
-    isLoading: isFetchingArticles,
-    isRefetching: isRefetchingArticles,
-  } = trpc.article.listArticles.useQuery(
+    await Promise.all([
+      trpcHelpers.user.getCurrentUser.prefetch(),
+      trpcHelpers.article.listArticles.prefetch({ favoritedByUserId: user.id }),
+    ]);
+
+    return {
+      props: {
+        trpcState: trpcHelpers.dehydrate(),
+        username: username,
+      },
+    };
+  } catch (e) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    };
+  }
+}
+
+const ProfilePage: NextPageWithLayout<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = (props) => {
+  const { data: user } = trpc.user.getByUsername.useQuery(props.username);
+
+  const { data: articles } = trpc.article.listArticles.useQuery(
     {
       favoritedByUserId: user?.id,
     },
@@ -34,7 +60,6 @@ const ProfilePage: NextPageWithLayout = () => {
       <ArticlesList
         className="mx-auto max-w-[950px] px-5"
         articles={articles}
-        isLoading={isFetchingArticles || isRefetchingArticles}
       />
     </>
   );

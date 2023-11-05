@@ -5,26 +5,55 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 
 import Button from '~/components/Button';
-import { useAuth } from '~/contexts/auth';
 import PenIcon from '~/assets/svg/pen.svg';
 import PlusIcon from '~/assets/svg/plus.svg';
 import TrashIcon from '~/assets/svg/trash.svg';
 import HeartIcon from '~/assets/svg/heart.svg';
 import { RouterOutputs, trpc } from '~/utils/trpc';
+import { createServerSideTRPCHelpers } from '~/utils/trpc-ssr-helpers';
 import ArticleCommentsSection from '~/components/ArticleCommentsSection';
 import userAvatarPlaceholderImage from '~/assets/images/user-avatar-placeholder.jpeg';
 
-export default function ArticlePage() {
-  const router = useRouter();
-  const articleSlug = (router.query.slug as string[]).join('/');
+export async function getServerSideProps(
+  context: GetServerSidePropsContext<{ slug: string[] }>,
+) {
+  const trpcHelpers = await createServerSideTRPCHelpers(context);
+  const slug = context.params?.slug.join('/') as string;
 
-  const { currentUser } = useAuth();
+  try {
+    await Promise.all([
+      trpcHelpers.article.getBySlug.fetch(slug),
+      trpcHelpers.user.getCurrentUser.prefetch(),
+      trpcHelpers.comment.getCommentsByArticleSlug.prefetch(slug),
+    ]);
+    return {
+      props: {
+        trpcState: trpcHelpers.dehydrate(),
+        slug,
+      },
+    };
+  } catch (e) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    };
+  }
+}
+
+export default function ArticlePage(
+  props: InferGetServerSidePropsType<typeof getServerSideProps>,
+) {
+  const router = useRouter();
+  const { data: currentUser } = trpc.user.getCurrentUser.useQuery();
 
   const trpcUtils = trpc.useUtils();
 
-  const { data: article } = trpc.article.getBySlug.useQuery(articleSlug);
+  const { data: article } = trpc.article.getBySlug.useQuery(props.slug);
 
   const { mutate: deleteArticle, isLoading: isDeleting } =
     trpc.article.delete.useMutation({
@@ -70,12 +99,12 @@ export default function ArticlePage() {
   return (
     <>
       <Head>
-        <title>{article?.title} - Conduit</title>
+        <title>{article.title} - Conduit</title>
       </Head>
       <div className="bg-zink-750">
         <div className="mx-auto max-w-[1150px] px-5 py-8">
           <h1 className="text-[44px] font-semibold text-white">
-            {article?.title}
+            {article.title}
           </h1>
           <ArticleInfo
             className="mt-8"
@@ -91,7 +120,7 @@ export default function ArticlePage() {
       </div>
       <div className="mx-auto mb-10 mt-8 flex max-w-[1150px] flex-col px-5">
         <p className="break-all text-[19px] leading-7 text-gray-900">
-          {article?.body}
+          {article.body}
         </p>
         {article.tags.length > 0 && (
           <ul className="mt-5 flex flex-wrap gap-x-1 gap-y-2">
@@ -133,7 +162,7 @@ type ArticleInfoProps = {
   isChangingFollowStatus: boolean;
   onChangeFavoritedStatus: () => void;
   isChangingFavoritedStatus: boolean;
-  article?: RouterOutputs['article']['getBySlug'];
+  article: RouterOutputs['article']['getBySlug'];
   className?: string;
   showAuthorUsernameGreen?: boolean;
 };
@@ -149,14 +178,14 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
   isChangingFollowStatus,
   showAuthorUsernameGreen,
 }) => {
-  const { currentUser } = useAuth();
+  const { data: currentUser } = trpc.user.getCurrentUser.useQuery();
 
   return (
     <div className={`flex items-center ${className}`}>
       <Link href={`/@${article?.author.username}`}>
         <img
           src={
-            article?.author.image
+            article.author.image
               ? article.author.image
               : userAvatarPlaceholderImage.src
           }
@@ -166,14 +195,14 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
       </Link>
       <div className="ml-2 flex flex-col">
         <Link
-          href={`/@${article?.author.username}`}
+          href={`/@${article.author.username}`}
           className={`font-medium leading-4 ${
             showAuthorUsernameGreen
               ? 'text-green-550 hover:text-green-650 hover:underline'
               : 'text-white hover:text-gray-200 hover:underline'
           }`}
         >
-          {article?.author.username}
+          {article.author.username}
         </Link>
         <p className="text-[13px] font-light leading-4 text-gray-400">
           {dayjs(article?.createdAt).format('MMMM D, YYYY')}
@@ -183,7 +212,7 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
         <>
           <Button
             asLink
-            href={`/editor/${article?.slug}`}
+            href={`/editor/${article.slug}`}
             className="ml-6"
             variantProps={{ size: 'sm', variant: 'secondary-outline' }}
           >
@@ -217,8 +246,8 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
             }}
           >
             <PlusIcon className="mr-[3px] h-[14px]" />{' '}
-            {article?.author.isFollowing ? 'Unfollow' : 'Follow'}{' '}
-            {article?.author.username}
+            {article.author.isFollowing ? 'Unfollow' : 'Follow'}{' '}
+            {article.author.username}
           </Button>
           <Button
             onClick={onChangeFavoritedStatus}
@@ -231,8 +260,8 @@ const ArticleInfo: FC<ArticleInfoProps> = ({
             }}
           >
             <HeartIcon className="mr-[3px] h-[11px]" />{' '}
-            {article?.isFavorited ? 'Unfavorite' : 'Favorite'} Article (
-            {article?.favoritesCount})
+            {article.isFavorited ? 'Unfavorite' : 'Favorite'} Article (
+            {article.favoritesCount})
           </Button>
         </>
       )}
