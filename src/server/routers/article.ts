@@ -91,6 +91,30 @@ export const articleRouter = router({
   delete: privateProcedure
     .input(z.string())
     .mutation(async ({ input: slug, ctx }) => {
+      const article = await ctx.prisma.article.findUnique({
+        where: {
+          slug,
+        },
+        include: { tags: true },
+      });
+
+      if (!article) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Article not found',
+        });
+      }
+
+      await ctx.prisma.article.update({
+        where: { slug },
+        data: {
+          tags: {
+            disconnect: article?.tags.map((tag) => ({
+              name: tag.name,
+            })),
+          },
+        },
+      });
       await ctx.prisma.article.delete({
         where: { slug, authorId: ctx.userId },
       });

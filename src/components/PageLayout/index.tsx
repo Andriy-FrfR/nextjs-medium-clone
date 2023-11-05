@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FC, ReactNode } from 'react';
@@ -67,7 +68,6 @@ const Header = () => {
           href: `/@${currentUser.username}`,
           content: (
             <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={
                   currentUser?.image

@@ -188,20 +188,15 @@ export const userRouter = router({
 
       return { id: updatedUser.id };
     }),
-  getCurrentUser: privateProcedure.query(async ({ ctx }) => {
+  getCurrentUser: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.userId) return null;
+
     const currentUser = await ctx.prisma.user.findUnique({
       where: { id: ctx.userId },
       select: { id: true, username: true, email: true, bio: true, image: true },
     });
 
-    if (!currentUser) {
-      throw new TRPCError({
-        message: 'User is not authorized',
-        code: 'UNAUTHORIZED',
-      });
-    }
-
-    return currentUser;
+    return currentUser || null;
   }),
   getByUsername: publicProcedure
     .input(z.string())

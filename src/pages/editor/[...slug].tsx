@@ -21,7 +21,7 @@ export async function getServerSideProps(
     trpcHelpers.article.getBySlug.fetch(slug),
   ]);
 
-  if (currentUser.status === 'rejected') {
+  if (currentUser.status === 'rejected' || !currentUser.value) {
     return {
       redirect: {
         destination: `/login?navigateTo=/editor/${slug}`,

@@ -15,14 +15,9 @@ import { createServerSideTRPCHelpers } from '~/utils/trpc-ssr-helpers';
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const trpcHelpers = await createServerSideTRPCHelpers(context);
 
-  try {
-    await trpcHelpers.user.getCurrentUser.fetch();
-    return {
-      props: {
-        trpcState: trpcHelpers.dehydrate(),
-      },
-    };
-  } catch {
+  const currentUser = await trpcHelpers.user.getCurrentUser.fetch();
+
+  if (!currentUser) {
     return {
       redirect: {
         destination: '/login?navigateTo=/editor',
@@ -30,6 +25,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   }
+
+  return {
+    props: {
+      trpcState: trpcHelpers.dehydrate(),
+    },
+  };
 }
 
 export default function CreateArticlePage() {

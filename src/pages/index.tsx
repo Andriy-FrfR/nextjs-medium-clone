@@ -15,17 +15,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const activeFeed = isGlobalFeed ? 'global' : tag ? 'tag' : 'user';
 
-  try {
-    await trpcHelpers.user.getCurrentUser.fetch();
-  } catch (e) {
-    if (activeFeed === 'user') {
-      return {
-        redirect: {
-          destination: '/?isGlobalFeed=1',
-          permanent: false,
-        },
-      };
-    }
+  const currentUser = await trpcHelpers.user.getCurrentUser.fetch();
+
+  if (!currentUser && activeFeed === 'user') {
+    return {
+      redirect: {
+        destination: '/?isGlobalFeed=1',
+        permanent: false,
+      },
+    };
   }
 
   await Promise.all([

@@ -16,14 +16,9 @@ import { createServerSideTRPCHelpers } from '~/utils/trpc-ssr-helpers';
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const trpcHelpers = await createServerSideTRPCHelpers(context);
 
-  try {
-    await trpcHelpers.user.getCurrentUser.fetch();
-    return {
-      props: {
-        trpcState: trpcHelpers.dehydrate(),
-      },
-    };
-  } catch (e) {
+  const currentUser = await trpcHelpers.user.getCurrentUser.fetch();
+
+  if (!currentUser) {
     return {
       redirect: {
         destination: '/login?navigateTo=/settings',
@@ -31,6 +26,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   }
+
+  return {
+    props: {
+      trpcState: trpcHelpers.dehydrate(),
+    },
+  };
 }
 
 export default function SettingsPage() {
@@ -89,7 +90,7 @@ export default function SettingsPage() {
 
   const onLogout = async () => {
     Cookies.remove('accessToken');
-    await trpcUtils.user.getCurrentUser.reset();
+    trpcUtils.user.getCurrentUser.reset();
     router.replace('/');
   };
 
